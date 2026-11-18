@@ -71,5 +71,30 @@
       <default>true</default>
       <summary>Show the icon in the top bar</summary>
     </key>
+    <key name="check-updates" type="b">
+      <default>false</default>
+      <summary>Check for new versions</summary>
+      <description>Ask GitHub once a day whether a newer Snowcast is out. Nothing else is sent.</description>
+    </key>
+    <key name="update-latest" type="s">
+      <default>''</default>
+      <summary>Latest version found on GitHub</summary>
+    </key>
+    <key name="update-url" type="s">
+      <default>''</default>
+      <summary>Where the latest version can be downloaded</summary>
+    </key>
+    <key name="update-checked-at" type="x">
+      <default>0</default>
+      <summary>Last successful update check (ms since epoch)</summary>
+    </key>
+    <key name="update-shown" type="s">
+      <default>''</default>
+      <summary>Version already announced</summary>
+    </key>
+    <key name="open-prefs-page" type="s">
+      <default>''</default>
+      <summary>Open this preferences page on launch (internal)</summary>
+    </key>
   </schema>
 </schemalist>

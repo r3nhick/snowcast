@@ -65,6 +65,15 @@ msgstr "Tamam"
 msgid "Log out and back in to load the new settings."
 msgstr "Yeni ayarların yüklenmesi için oturumu kapatıp yeniden açın."
 
+msgid "Snowcast %s is out"
+msgstr "Snowcast %s çıktı"
+
+msgid "Open Settings → About to see how to update."
+msgstr "Nasıl güncelleneceğini görmek için Ayarlar → Hakkında bölümünü açın."
+
+msgid "Open Settings"
+msgstr "Ayarları aç"
+
 msgid "❄️ Snowfall"
 msgstr "❄️ Kar yağışı"
 
@@ -157,3 +166,135 @@ msgstr "Daha düşük değer işlemciyi daha az yorar"
 
 msgid "Icon in the top bar"
 msgstr "Üst çubukta simge"
+
+msgid "Settings"
+msgstr "Ayarlar"
+
+msgid "About"
+msgstr "Hakkında"
+
+msgid "Version %s"
+msgstr "Sürüm %s"
+
+msgid "Website"
+msgstr "Web sitesi"
+
+msgid "Features, installing and updating"
+msgstr "Özellikler, kurulum ve güncelleme"
+
+msgid "Report a problem"
+msgstr "Sorun bildir"
+
+msgid "On GitHub; paste the report below in it"
+msgstr "GitHub'da; aşağıdaki raporu içine yapıştırın"
+
+msgid "Copy a bug report"
+msgstr "Hata raporunu kopyala"
+
+msgid "Versions, system and changed settings, ready to paste into a report"
+msgstr "Sürümler, sistem ve değiştirilen ayarlar; rapora yapıştırmaya hazır"
+
+msgid "Copied — paste it into the report on GitHub"
+msgstr "Kopyalandı — GitHub'daki rapora yapıştırın"
+
+msgid "License"
+msgstr "Lisans"
+
+msgid "GNU General Public License, version 3 or later"
+msgstr "GNU Genel Kamu Lisansı, sürüm 3 veya üzeri"
+
+msgid "Reset all settings"
+msgstr "Tüm ayarları sıfırla"
+
+msgid "Back to the defaults"
+msgstr "Varsayılanlara dön"
+
+msgid "Reset all settings?"
+msgstr "Tüm ayarlar sıfırlansın mı?"
+
+msgid "Every option goes back to its default."
+msgstr "Her seçenek varsayılan değerine döner."
+
+msgid "Cancel"
+msgstr "İptal"
+
+msgid "Reset"
+msgstr "Sıfırla"
+
+msgid "Download"
+msgstr "İndir"
+
+msgid "Update"
+msgstr "Güncelle"
+
+msgid "Log Out"
+msgstr "Oturumu kapat"
+
+msgid "Try Again"
+msgstr "Tekrar dene"
+
+msgid "Check for new versions"
+msgstr "Yeni sürümleri denetle"
+
+msgid "Asks GitHub once a day; nothing else is sent"
+msgstr "Günde bir kez GitHub'a sorar; başka hiçbir şey gönderilmez"
+
+msgid "Updating to Snowcast %s…"
+msgstr "Snowcast %s sürümüne güncelleniyor…"
+
+msgid "Downloading from GitHub"
+msgstr "GitHub'dan indiriliyor"
+
+msgid "Couldn’t update"
+msgstr "Güncellenemedi"
+
+msgid "Snowcast %s is installed"
+msgstr "Snowcast %s yüklendi"
+
+msgid "Log out and back in to finish"
+msgstr "Bitirmek için oturumu kapatıp yeniden açın"
+
+msgid "Not checking for new versions"
+msgstr "Yeni sürümler denetlenmiyor"
+
+msgid "Turn it on below to hear when one is out"
+msgstr "Yeni sürüm çıktığında haberdar olmak için aşağıdan açın"
+
+msgid "Your snow and settings stay"
+msgstr "Karınız ve ayarlarınız korunur"
+
+msgid "Download it from GitHub"
+msgstr "GitHub'dan indirin"
+
+msgid "You’re up to date"
+msgstr "Güncelsiniz"
+
+msgid "Checked %s"
+msgstr "Denetlendi: %s"
+
+msgid "Not checked yet"
+msgstr "Henüz denetlenmedi"
+
+msgid "Snowcast asks GitHub once a day"
+msgstr "Snowcast günde bir kez GitHub'a sorar"
+
+msgid "today"
+msgstr "bugün"
+
+msgid "yesterday"
+msgstr "dün"
+
+msgid "This copy has local changes; git didn’t overwrite them. Commit or stash them, or download instead"
+msgstr "Bu kopyada yerel değişiklikler var; git bunların üzerine yazmadı. Bunları commit edin veya stash yapın ya da elle indirin"
+
+msgid "GitHub couldn’t be reached; try again later"
+msgstr "GitHub'a ulaşılamadı; daha sonra tekrar deneyin"
+
+msgid "git pull failed"
+msgstr "git pull başarısız oldu"
+
+msgid "This copy already matches GitHub; nothing new was downloaded. Check metadata.json for local edits"
+msgstr "Bu kopya zaten GitHub ile aynı; yeni bir şey indirilmedi. metadata.json'da yerel değişiklik olup olmadığını kontrol edin"
+
+msgid "git finished, but the version on disk didn’t change"
+msgstr "git tamamlandı, ancak diskteki sürüm değişmedi"

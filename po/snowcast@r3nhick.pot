@@ -60,6 +60,15 @@ msgstr ""
 msgid "Log out and back in to load the new settings."
 msgstr ""
 
+msgid "Snowcast %s is out"
+msgstr ""
+
+msgid "Open Settings → About to see how to update."
+msgstr ""
+
+msgid "Open Settings"
+msgstr ""
+
 msgid "❄️ Snowfall"
 msgstr ""
 
@@ -151,4 +160,136 @@ msgid "Lower is easier on the CPU"
 msgstr ""
 
 msgid "Icon in the top bar"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "About"
+msgstr ""
+
+msgid "Version %s"
+msgstr ""
+
+msgid "Website"
+msgstr ""
+
+msgid "Features, installing and updating"
+msgstr ""
+
+msgid "Report a problem"
+msgstr ""
+
+msgid "On GitHub; paste the report below in it"
+msgstr ""
+
+msgid "Copy a bug report"
+msgstr ""
+
+msgid "Versions, system and changed settings, ready to paste into a report"
+msgstr ""
+
+msgid "Copied — paste it into the report on GitHub"
+msgstr ""
+
+msgid "License"
+msgstr ""
+
+msgid "GNU General Public License, version 3 or later"
+msgstr ""
+
+msgid "Reset all settings"
+msgstr ""
+
+msgid "Back to the defaults"
+msgstr ""
+
+msgid "Reset all settings?"
+msgstr ""
+
+msgid "Every option goes back to its default."
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Reset"
+msgstr ""
+
+msgid "Download"
+msgstr ""
+
+msgid "Update"
+msgstr ""
+
+msgid "Log Out"
+msgstr ""
+
+msgid "Try Again"
+msgstr ""
+
+msgid "Check for new versions"
+msgstr ""
+
+msgid "Asks GitHub once a day; nothing else is sent"
+msgstr ""
+
+msgid "Updating to Snowcast %s…"
+msgstr ""
+
+msgid "Downloading from GitHub"
+msgstr ""
+
+msgid "Couldn’t update"
+msgstr ""
+
+msgid "Snowcast %s is installed"
+msgstr ""
+
+msgid "Log out and back in to finish"
+msgstr ""
+
+msgid "Not checking for new versions"
+msgstr ""
+
+msgid "Turn it on below to hear when one is out"
+msgstr ""
+
+msgid "Your snow and settings stay"
+msgstr ""
+
+msgid "Download it from GitHub"
+msgstr ""
+
+msgid "You’re up to date"
+msgstr ""
+
+msgid "Checked %s"
+msgstr ""
+
+msgid "Not checked yet"
+msgstr ""
+
+msgid "Snowcast asks GitHub once a day"
+msgstr ""
+
+msgid "today"
+msgstr ""
+
+msgid "yesterday"
+msgstr ""
+
+msgid "This copy has local changes; git didn’t overwrite them. Commit or stash them, or download instead"
+msgstr ""
+
+msgid "GitHub couldn’t be reached; try again later"
+msgstr ""
+
+msgid "git pull failed"
+msgstr ""
+
+msgid "This copy already matches GitHub; nothing new was downloaded. Check metadata.json for local edits"
+msgstr ""
+
+msgid "git finished, but the version on disk didn’t change"
 msgstr ""

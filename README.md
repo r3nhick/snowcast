@@ -44,6 +44,16 @@ Log out and back in, then run:
 gnome-extensions enable snowcast@r3nhick
 ```
 
+## Updating
+
+Snowflake icon → “Settings…” → **About**. Turn on **Check for new versions**: once a day Snowcast asks GitHub whether a newer version is out (nothing else is sent) and lets you know with a notification. If you installed Snowcast with `git clone`, the **Update** button there updates it in one click (`git pull`); then log out and back in.
+
+Or update by hand:
+
+```
+git -C ~/.local/share/gnome-shell/extensions/snowcast@r3nhick pull
+```
+
 ## Settings
 
 Snowflake icon in the top bar → “Settings…”, or:

@@ -13,6 +13,8 @@ import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
 import * as Slider from 'resource:///org/gnome/shell/ui/slider.js';
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import {UpdateChecker} from './lib/updates.js';
+
 const COLW = 3;          // ширина однієї «колонки» снігу, px
 const CAP_BAND = 46;
 const PREVIEW_BAND = 48;    // висота смужки зі снігом над мініатюрою вікна в огляді     // макс. можлива висота «гірки» на вікні, px
@@ -2173,6 +2175,8 @@ export default class SnowcastExtension extends Extension {
         ];
         this._syncEngine();
         this._syncIndicator();
+        this._updateChecker = this._settings.settings_schema.has_key('check-updates')
+            ? new UpdateChecker(this, this._settings) : null;
     }
 
     openWindDialog() {
@@ -2191,6 +2195,8 @@ export default class SnowcastExtension extends Extension {
     }
 
     disable() {
+        this._updateChecker?.destroy();
+        this._updateChecker = null;
         this._windDialog?.destroy();
         this._windDialog = null;
         for (const id of this._ids)

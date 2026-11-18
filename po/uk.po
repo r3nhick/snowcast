@@ -65,6 +65,15 @@ msgstr "Готово"
 msgid "Log out and back in to load the new settings."
 msgstr "Вийдіть із сеансу й увійдіть знову, щоб з’явилися нові налаштування."
 
+msgid "Snowcast %s is out"
+msgstr "Вийшов Snowcast %s"
+
+msgid "Open Settings → About to see how to update."
+msgstr "Відкрийте Налаштування → Про розширення, щоб дізнатися, як оновити."
+
+msgid "Open Settings"
+msgstr "Відкрити налаштування"
+
 msgid "❄️ Snowfall"
 msgstr "❄️ Снігопад"
 
@@ -157,3 +166,135 @@ msgstr "Менше — легше для процесора"
 
 msgid "Icon in the top bar"
 msgstr "Значок на верхній панелі"
+
+msgid "Settings"
+msgstr "Налаштування"
+
+msgid "About"
+msgstr "Про розширення"
+
+msgid "Version %s"
+msgstr "Версія %s"
+
+msgid "Website"
+msgstr "Сайт"
+
+msgid "Features, installing and updating"
+msgstr "Можливості, встановлення та оновлення"
+
+msgid "Report a problem"
+msgstr "Повідомити про проблему"
+
+msgid "On GitHub; paste the report below in it"
+msgstr "На GitHub; вставте в нього звіт нижче"
+
+msgid "Copy a bug report"
+msgstr "Скопіювати звіт про помилку"
+
+msgid "Versions, system and changed settings, ready to paste into a report"
+msgstr "Версії, система й змінені налаштування — готово, щоб вставити у звіт"
+
+msgid "Copied — paste it into the report on GitHub"
+msgstr "Скопійовано — вставте у звіт на GitHub"
+
+msgid "License"
+msgstr "Ліцензія"
+
+msgid "GNU General Public License, version 3 or later"
+msgstr "GNU General Public License, версія 3 або новіша"
+
+msgid "Reset all settings"
+msgstr "Скинути всі налаштування"
+
+msgid "Back to the defaults"
+msgstr "Повернути типові значення"
+
+msgid "Reset all settings?"
+msgstr "Скинути всі налаштування?"
+
+msgid "Every option goes back to its default."
+msgstr "Усі параметри повернуться до типових значень."
+
+msgid "Cancel"
+msgstr "Скасувати"
+
+msgid "Reset"
+msgstr "Скинути"
+
+msgid "Download"
+msgstr "Завантажити"
+
+msgid "Update"
+msgstr "Оновити"
+
+msgid "Log Out"
+msgstr "Вийти"
+
+msgid "Try Again"
+msgstr "Спробувати ще"
+
+msgid "Check for new versions"
+msgstr "Перевіряти нові версії"
+
+msgid "Asks GitHub once a day; nothing else is sent"
+msgstr "Раз на день питає GitHub; більше нічого не надсилається"
+
+msgid "Updating to Snowcast %s…"
+msgstr "Оновлення до Snowcast %s…"
+
+msgid "Downloading from GitHub"
+msgstr "Завантаження з GitHub"
+
+msgid "Couldn’t update"
+msgstr "Не вдалося оновити"
+
+msgid "Snowcast %s is installed"
+msgstr "Snowcast %s встановлено"
+
+msgid "Log out and back in to finish"
+msgstr "Вийдіть із сеансу й увійдіть знову, щоб завершити"
+
+msgid "Not checking for new versions"
+msgstr "Нові версії не перевіряються"
+
+msgid "Turn it on below to hear when one is out"
+msgstr "Увімкніть нижче, щоб дізнатися, коли вийде нова"
+
+msgid "Your snow and settings stay"
+msgstr "Ваш сніг і налаштування лишаться"
+
+msgid "Download it from GitHub"
+msgstr "Завантажте його з GitHub"
+
+msgid "You’re up to date"
+msgstr "У вас остання версія"
+
+msgid "Checked %s"
+msgstr "Перевірено %s"
+
+msgid "Not checked yet"
+msgstr "Ще не перевірялося"
+
+msgid "Snowcast asks GitHub once a day"
+msgstr "Snowcast питає GitHub раз на день"
+
+msgid "today"
+msgstr "сьогодні"
+
+msgid "yesterday"
+msgstr "вчора"
+
+msgid "This copy has local changes; git didn’t overwrite them. Commit or stash them, or download instead"
+msgstr "У цій копії є локальні зміни; git їх не перезаписав. Закомітьте чи сховайте їх (stash) або завантажте оновлення вручну"
+
+msgid "GitHub couldn’t be reached; try again later"
+msgstr "Не вдалося зв’язатися з GitHub; спробуйте пізніше"
+
+msgid "git pull failed"
+msgstr "git pull не вдався"
+
+msgid "This copy already matches GitHub; nothing new was downloaded. Check metadata.json for local edits"
+msgstr "Ця копія вже збігається з GitHub; нічого нового не завантажено. Перевірте, чи не змінювали metadata.json"
+
+msgid "git finished, but the version on disk didn’t change"
+msgstr "git завершився, але версія на диску не змінилася"
