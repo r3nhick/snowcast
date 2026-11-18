@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.snowcast" path="/org/gnome/shell/extensions/snowcast/">
+    <key name="enabled" type="b">
+      <default>true</default>
+      <summary>Снігопад увімкнено</summary>
+    </key>
+    <key name="intensity" type="i">
+      <range min="5" max="100"/>
+      <default>50</default>
+      <summary>Інтенсивність снігопаду</summary>
+    </key>
+    <key name="wind-angle" type="i">
+      <range min="-75" max="75"/>
+      <default>0</default>
+      <summary>Напрямок снігу: кут від вертикалі (від'ємний — вліво, додатний — вправо)</summary>
+    </key>
+    <key name="wind-gusts" type="b">
+      <default>true</default>
+      <summary>Пориви вітру</summary>
+    </key>
+    <key name="max-snow" type="i">
+      <range min="10" max="80"/>
+      <default>40</default>
+      <summary>Максимальна висота кучугур унизу екрана (px)</summary>
+    </key>
+    <key name="window-snow" type="b">
+      <default>true</default>
+      <summary>Сніг налипає на верхні краї вікон</summary>
+    </key>
+    <key name="window-radius" type="i">
+      <range min="0" max="40"/>
+      <default>16</default>
+      <summary>Радіус заокруглення кутів вікон (px)</summary>
+    </key>
+    <key name="shake-off" type="b">
+      <default>true</default>
+      <summary>Сніг осипається, коли швидко рухаєш вікно</summary>
+    </key>
+    <key name="plow-enabled" type="b">
+      <default>true</default>
+      <summary>Машинка-снігоприбиральник</summary>
+    </key>
+    <key name="plow-interval" type="i">
+      <range min="10" max="300"/>
+      <default>40</default>
+      <summary>Як часто приїжджає машинка (секунди)</summary>
+    </key>
+    <key name="cursor-clear" type="b">
+      <default>true</default>
+      <summary>Розчищати сніг курсором</summary>
+    </key>
+    <key name="hide-on-fullscreen" type="b">
+      <default>true</default>
+      <summary>Ховати сніг, коли активне повноекранне вікно</summary>
+    </key>
+    <key name="frame-rate" type="i">
+      <range min="15" max="60"/>
+      <default>30</default>
+      <summary>Кадрів на секунду</summary>
+    </key>
+    <key name="show-indicator" type="b">
+      <default>true</default>
+      <summary>Показувати значок на верхній панелі</summary>
+    </key>
+  </schema>
+</schemalist>
