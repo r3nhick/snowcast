@@ -1,52 +1,57 @@
 # Snowcast ❄️
 
-Розширення для GNOME Shell 45–51: сніг на робочому столі.
+A GNOME Shell extension (45–51) that brings snow to your desktop.
 
-![Snowcast на робочому столі: сніг на вікні терміналу, віджетах і доці](assets/photo.png)
+![Snowcast on the desktop: snow on a terminal window, desktop widgets and the dock](assets/photo.png)
 
-- **Сніжинки.** Падають поверх вікон, з вітром і поривами. Напрямок задається мишкою: значок сніжинки → «Напрямок снігу…».
-- **Гірки снігу на вікнах, доці й віджетах.** Горби мають різну висоту, на заокруглені кути сніг не лягає.
-- **Фізика:**
-  - якщо вікно звузити, сніг із прибраної частини падає;
-  - при різкому русі вікна сніг ковзає по інерції;
-  - якщо смикнути вікно вниз, сніг плавно підстрибує;
-  - коли вікно закривають чи згортають, сніг обсипається на вікна нижче.
-- **Кучугури внизу екрана і машинка-снігоприбиральник.** Машинка заїжджає на док. На віджетах їздить маленька машинка.
-- **Теплий курсор.** Топить сніг, над ним піднімається пара.
-- **Сніг в огляді (Super)** видно так само, як віджети.
-- **Головний перемикач Snowcast** у меню вимикає все, а саме розширення лишається ввімкненим. **Snowfall** вимикає лише падіння снігу: той, що вже ліг, лишається.
+## Features
 
-Підтримуються Dash to Dock, Ubuntu Dock, dash2dock-lite і віджети Desktop Widgets.
+- **Snowflakes** fall over your windows, drifting with the wind and gusts. Set the direction with the mouse: snowflake icon → “Snow direction…”.
+- **Snow piles up** on the top edges of windows, the dock and desktop widgets. The drifts have hills of different heights, and snow never sits on rounded corners.
+- **Snow physics:**
+  - shrink a window, and the snow from the cut-off part falls down;
+  - move a window sharply, and the snow slides by inertia and falls off the edge;
+  - jerk a window down, and the snow bounces softly and wobbles;
+  - close or minimize a window, and its snow tumbles onto the windows below.
+- **Snowdrifts** gather at the bottom of the screen.
+- **A little snowplow** clears the drifts and climbs onto the dock. A smaller one rides along the top of desktop widgets.
+- **A warm cursor** melts the snow, and steam rises from it.
+- **The overview (Super)** shows the snow too, just like the widgets.
+- **A master Snowcast switch** in the menu turns everything off without disabling the extension. **Snowfall** only stops new snow from falling: the settled snow stays.
 
-## Мови / Languages / Diller
+Works with Dash to Dock, Ubuntu Dock, dash2dock-lite and Desktop Widgets.
 
-Інтерфейс доступний англійською (US), українською і турецькою. Мова вибирається автоматично, за мовою системи.
+## Languages
 
-*Snowcast speaks English, Ukrainian and Turkish — the language follows your system locale.*
+The interface is available in English, Ukrainian and Turkish. The language follows your system locale.
 
-Як додати переклад: скопіюйте `po/snowcast@r3nhick.pot` у `po/<мова>.po`, перекладіть рядки й скомпілюйте:
+To add a translation, copy `po/snowcast@r3nhick.pot` to `po/<lang>.po`, translate the strings and compile it:
 
 ```
-msgfmt po/<мова>.po -o locale/<мова>/LC_MESSAGES/snowcast@r3nhick.mo
+msgfmt po/<lang>.po -o locale/<lang>/LC_MESSAGES/snowcast@r3nhick.mo
 ```
 
-## Встановлення
+## Installation
 
 ```
 git clone https://github.com/r3nhick/snowcast.git ~/.local/share/gnome-shell/extensions/snowcast@r3nhick
 glib-compile-schemas ~/.local/share/gnome-shell/extensions/snowcast@r3nhick/schemas
 ```
 
-Вийдіть із сеансу, увійдіть знову і виконайте:
+Log out and back in, then run:
 
 ```
 gnome-extensions enable snowcast@r3nhick
 ```
 
-## Налаштування
+## Settings
 
-Значок сніжинки на верхній панелі → «Налаштування…», або:
+Snowflake icon in the top bar → “Settings…”, or:
 
 ```
 gnome-extensions prefs snowcast@r3nhick
 ```
+
+## License
+
+Snowcast is free software, released under the [GNU General Public License v3.0](LICENSE) or later.
