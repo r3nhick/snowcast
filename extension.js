@@ -14,7 +14,8 @@ import * as Slider from 'resource:///org/gnome/shell/ui/slider.js';
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 const COLW = 3;          // ширина однієї «колонки» снігу, px
-const CAP_BAND = 46;     // макс. можлива висота «гірки» на вікні, px
+const CAP_BAND = 46;
+const PREVIEW_BAND = 48;    // висота смужки зі снігом над мініатюрою вікна в огляді     // макс. можлива висота «гірки» на вікні, px
 const TAU = Math.PI * 2;
 const PLOW_SPEED = 115;  // px/с
 
@@ -168,7 +169,10 @@ class SnowEngine {
         this._ovIds = [
             Main.overview.connect('showing', () => this._syncOverviewClones()),
             Main.overview.connect('shown', () => this._syncOverviewClones()),
-            Main.overview.connect('hidden', () => this._clearOverviewClones()),
+            Main.overview.connect('hidden', () => {
+                this._clearOverviewClones();
+                this._clearPreviewSnow();
+            }),
         ];
 
         // закриття і згортання вікон: сніг з них обсипається одразу, з початком анімації
@@ -207,6 +211,7 @@ class SnowEngine {
         for (const id of this._ovIds)
             Main.overview.disconnect(id);
         this._clearOverviewClones();
+        this._clearPreviewSnow();
         this._bgArea.destroy();
         this._bgArea = null;
         this._area.destroy();
@@ -331,6 +336,8 @@ class SnowEngine {
         this._area.queue_repaint();
         if (this._ovClones.size)
             this._bgArea.queue_repaint();
+        if (Main.overview.visible || Main.overview.visibleTarget)
+            this._syncPreviewSnow();
     }
 
     // доки, що доходять до низу екрана: за ними сніг не збирається, а машинка їде по них
@@ -1420,6 +1427,89 @@ class SnowEngine {
             container.set_child_above_sibling(clone, null);
         }
         this._bgArea.queue_repaint();
+    }
+
+    // Сніг на мініатюрах вікон в огляді: до кожної мініатюри (WindowPreview) кріпимо
+    // смужку, яка малює сніг цього вікна в масштабі мініатюри.
+    _syncPreviewSnow() {
+        this._previewAreas ??= new Map();
+        if (!this._cfg.windowSnow) {
+            this._clearPreviewSnow();
+            return;
+        }
+        const seen = new Set();
+        try {
+            const views = Main.overview._overview?.controls?._workspacesDisplay?._workspacesViews ?? [];
+            for (const view of views) {
+                for (const ws of view?._workspaces ?? []) {
+                    for (const preview of ws?._windows ?? []) {
+                        seen.add(preview);
+                        let area = this._previewAreas.get(preview);
+                        if (!area) {
+                            area = this._addPreviewSnow(preview);
+                            if (!area)
+                                continue;
+                        }
+                        area.queue_repaint();
+                    }
+                }
+            }
+        } catch (e) {
+            console.debug(`Snowcast: overview previews: ${e}`);
+        }
+        for (const [preview, area] of [...this._previewAreas]) {
+            if (!seen.has(preview))
+                area.destroy();
+        }
+    }
+
+    _addPreviewSnow(preview) {
+        const container = preview.windowContainer ?? preview.window_container ?? preview._windowContainer;
+        if (!container || !preview.metaWindow)
+            return null;
+        const area = new St.DrawingArea({reactive: false, height: PREVIEW_BAND});
+        area.add_constraint(new Clutter.BindConstraint({source: container, coordinate: Clutter.BindCoordinate.X}));
+        area.add_constraint(new Clutter.BindConstraint({source: container, coordinate: Clutter.BindCoordinate.WIDTH}));
+        area.add_constraint(new Clutter.BindConstraint({
+            source: container, coordinate: Clutter.BindCoordinate.Y, offset: -PREVIEW_BAND,
+        }));
+        area.connect('repaint', a => this._drawPreviewSnow(a, preview, container));
+        area.connect('destroy', () => {
+            if (this._previewAreas?.get(preview) === area)
+                this._previewAreas.delete(preview);
+        });
+        preview.add_child(area);
+        this._previewAreas.set(preview, area);
+        return area;
+    }
+
+    _drawPreviewSnow(area, preview, container) {
+        const cr = area.get_context();
+        cr.setOperator(Cairo.Operator.CLEAR);
+        cr.paint();
+        cr.setOperator(Cairo.Operator.OVER);
+        try {
+            const w = preview.metaWindow;
+            const cap = w ? this._caps.get(w.get_stable_sequence()) : null;
+            if (cap?.h && container.width > 0) {
+                const frame = w.get_frame_rect();
+                const sc = container.width / Math.max(1, frame.width);
+                cr.translate(0, PREVIEW_BAND);
+                cr.scale(sc, sc);
+                this._drawCap(cr, 0, 0, cap.h, null, frame.width, null);
+            }
+        } catch (e) {
+            console.debug(`Snowcast: preview snow: ${e}`);
+        }
+        cr.$dispose();
+    }
+
+    _clearPreviewSnow() {
+        if (!this._previewAreas)
+            return;
+        for (const area of [...this._previewAreas.values()])
+            area.destroy();
+        this._previewAreas.clear();
     }
 
     _clearOverviewClones() {
