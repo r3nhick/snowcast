@@ -137,6 +137,12 @@ msgstr "Курсор розтоплює сніг, над ним піднімає
 msgid "Other"
 msgstr "Інше"
 
+msgid "Hide falling snow over the active window"
+msgstr "Не показувати сніг над активним вікном"
+
+msgid "Snow falls behind the window you are working in; the snow on its top edge stays"
+msgstr "Сніг падає позаду вікна, в якому ви працюєте; сніг на його верхньому краї лишається"
+
 msgid "Hide in fullscreen"
 msgstr "Ховати в повноекранному режимі"
 

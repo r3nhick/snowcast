@@ -137,6 +137,12 @@ msgstr "İmleç karı eritir ve üzerinden buhar yükselir"
 msgid "Other"
 msgstr "Diğer"
 
+msgid "Hide falling snow over the active window"
+msgstr "Etkin pencerenin üzerinde kar gösterme"
+
+msgid "Snow falls behind the window you are working in; the snow on its top edge stays"
+msgstr "Kar, üzerinde çalıştığınız pencerenin arkasına yağar; üst kenarındaki kar yerinde kalır"
+
 msgid "Hide in fullscreen"
 msgstr "Tam ekranda gizle"
 

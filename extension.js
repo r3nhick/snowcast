@@ -234,6 +234,7 @@ class SnowEngine {
             windAngle: s.settings_schema.has_key('wind-angle') ? s.get_int('wind-angle') : 0,
             gusts: s.settings_schema.has_key('wind-gusts') ? s.get_boolean('wind-gusts') : true,
             snowfall: s.settings_schema.has_key('snowfall') ? s.get_boolean('snowfall') : true,
+            hideFocused: s.settings_schema.has_key('hide-over-focused') ? s.get_boolean('hide-over-focused') : false,
             fps: s.get_int('frame-rate'),
         };
         if (!this._cfg.windowSnow)
@@ -317,6 +318,7 @@ class SnowEngine {
 
         this._time += dt;
         this._readWindows(dt);
+        this._updateFocusRect();
         this._updateObstacles();
         this._updatePointer(dt);
         this._updateFlakes(dt);
@@ -338,6 +340,25 @@ class SnowEngine {
             this._bgArea.queue_repaint();
         if (Main.overview.visible || Main.overview.visibleTarget)
             this._syncPreviewSnow();
+    }
+
+    // активне вікно, «перед» яким сніг не малюється (якщо ввімкнено в налаштуваннях)
+    _updateFocusRect() {
+        this._focusRect = null;
+        if (!this._cfg.hideFocused)
+            return;
+        const fw = global.display.get_focus_window();
+        if (!fw || fw.minimized || fw.is_fullscreen() || !CAP_TYPES.has(fw.get_window_type()))
+            return;
+        if (!fw.located_on_workspace(global.workspace_manager.get_active_workspace()))
+            return;
+        const r = fw.get_frame_rect();
+        if (r.width < 40 || r.height < 20)
+            return;
+        this._focusRect = {
+            x: r.x, y: r.y, width: r.width, height: r.height,
+            radius: fw.is_maximized?.() ? 0 : Math.min(this._cfg.winRadius, r.width / 2, r.height / 2),
+        };
     }
 
     // доки, що доходять до низу екрана: за ними сніг не збирається, а машинка їде по них
@@ -1563,6 +1584,19 @@ class SnowEngine {
                 this._drawCap(cr, w.rect.x, w.rect.y, w.cap.h, w.covered, w.rect.width, w.cap.off);
             }
         }
+        // Активне вікно стоїть «перед» снігом: усе, що далі (кучугури, сніжинки, грудочки,
+        // машинка), не малюємо в його межах. Сніг на його верхньому краї вже намальовано вище.
+        const fr = this._focusRect;
+        if (fr) {
+            cr.save();
+            cr.newPath();
+            cr.rectangle(0, 0, this._area.width, this._area.height);
+            roundRect(cr, fr.x, fr.y, fr.width, fr.height, fr.radius);
+            cr.setFillRule(Cairo.FillRule.EVEN_ODD);
+            cr.clip();
+            cr.setFillRule(Cairo.FillRule.WINDING);
+        }
+
         for (const g of this._grounds)
             this._drawCap(cr, g.x, g.y + g.height + 1, g.h, null, g.width);
 
@@ -1625,6 +1659,8 @@ class SnowEngine {
                 this._drawPlow(cr, p);
             }
         }
+        if (fr)
+            cr.restore();
         cr.$dispose();
     }
 

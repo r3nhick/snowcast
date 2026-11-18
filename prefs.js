@@ -57,6 +57,9 @@ export default class SnowcastPreferences extends ExtensionPreferences {
 
         const misc = new Adw.PreferencesGroup({title: _('Other')});
         page.add(misc);
+        if (s.settings_schema.has_key('hide-over-focused'))
+            sw(misc, 'hide-over-focused', _('Hide falling snow over the active window'),
+                _('Snow falls behind the window you are working in; the snow on its top edge stays'));
         sw(misc, 'hide-on-fullscreen', _('Hide in fullscreen'), _('Doesn’t get in the way of videos and games'));
         spin(misc, 'frame-rate', _('Frames per second'), _('Lower is easier on the CPU'), 15, 60, 5);
         sw(misc, 'show-indicator', _('Icon in the top bar'));

@@ -12,7 +12,7 @@
     "51"
   ],
   "settings-schema": "org.gnome.shell.extensions.snowcast",
-  "version": 18,
+  "version": 19,
   "url": "https://github.com/r3nhick/snowcast",
   "gettext-domain": "snowcast@r3nhick"
 }

@@ -132,6 +132,12 @@ msgstr ""
 msgid "Other"
 msgstr ""
 
+msgid "Hide falling snow over the active window"
+msgstr ""
+
+msgid "Snow falls behind the window you are working in; the snow on its top edge stays"
+msgstr ""
+
 msgid "Hide in fullscreen"
 msgstr ""
 

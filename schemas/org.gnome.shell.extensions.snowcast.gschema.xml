@@ -54,6 +54,10 @@
       <default>true</default>
       <summary>Melt snow with the cursor</summary>
     </key>
+    <key name="hide-over-focused" type="b">
+      <default>false</default>
+      <summary>Hide falling snow over the active window</summary>
+    </key>
     <key name="hide-on-fullscreen" type="b">
       <default>true</default>
       <summary>Hide snow when a fullscreen window is active</summary>
