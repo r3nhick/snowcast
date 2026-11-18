@@ -63,7 +63,13 @@ msgstr ""
 msgid "❄️ Snowfall"
 msgstr ""
 
-msgid "Enable snowfall"
+msgid "Enable Snowcast"
+msgstr ""
+
+msgid "Turns everything off without disabling the extension"
+msgstr ""
+
+msgid "When off, no new snow falls, but the settled snow stays"
 msgstr ""
 
 msgid "Intensity"

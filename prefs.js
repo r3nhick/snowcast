@@ -24,9 +24,14 @@ export default class SnowcastPreferences extends ExtensionPreferences {
             group.add(row);
         };
 
+        const main = new Adw.PreferencesGroup();
+        page.add(main);
+        sw(main, 'enabled', _('Enable Snowcast'), _('Turns everything off without disabling the extension'));
+
         const snow = new Adw.PreferencesGroup({title: _('❄️ Snowfall')});
         page.add(snow);
-        sw(snow, 'enabled', _('Enable snowfall'));
+        if (s.settings_schema.has_key('snowfall'))
+            sw(snow, 'snowfall', _('Snowfall'), _('When off, no new snow falls, but the settled snow stays'));
         spin(snow, 'intensity', _('Intensity'), _('How many snowflakes fall at once'), 5, 100, 5);
         spin(snow, 'max-snow', _('Snowdrift height'), _('Maximum snow height at the bottom of the screen, px'), 10, 80, 5);
         sw(snow, 'window-snow', _('Snow on windows'), _('Snow sticks to the top edges of windows'));

@@ -228,6 +228,7 @@ class SnowEngine {
             winRadius: s.settings_schema.has_key('window-radius') ? s.get_int('window-radius') : 16,
             windAngle: s.settings_schema.has_key('wind-angle') ? s.get_int('wind-angle') : 0,
             gusts: s.settings_schema.has_key('wind-gusts') ? s.get_boolean('wind-gusts') : true,
+            snowfall: s.settings_schema.has_key('snowfall') ? s.get_boolean('snowfall') : true,
             fps: s.get_int('frame-rate'),
         };
         if (!this._cfg.windowSnow)
@@ -764,21 +765,24 @@ class SnowEngine {
         }
         this._actorKeys ??= new WeakMap();
         this._keySeq ??= 0;
+        // В огляді (Super) GNOME ховає справжній шар робочого столу, тож віджети «зникають».
+        // Тоді беремо їхні останні відомі місця — і сніг на них видно в огляді.
+        const inOverview = Main.overview.visible || Main.overview.visibleTarget;
+        this._widgetRects ??= new Map();
         const out = [];
         for (const layer of this._widgetLayers) {
             try {
-                if (!layer.get_stage() || !layer.is_mapped())
+                if (!layer.get_stage())
+                    continue;
+                const layerMapped = layer.is_mapped();
+                if (!layerMapped && !inOverview)
                     continue;
                 for (const wrap of layer.get_children()) {
                     const isWidget = wrap.get_children().some(ch => {
                         const sc = typeof ch.get_style_class_name === 'function' ? ch.get_style_class_name() : null;
                         return sc && sc.split(/\s+/).includes('widget');
                     });
-                    if (!isWidget || !wrap.is_mapped() || wrap.get_paint_opacity() < 10)
-                        continue;
-                    const [x, y] = wrap.get_transformed_position();
-                    const [w, h] = wrap.get_transformed_size();
-                    if (!(w > 20 && h > 20) || y < 6)
+                    if (!isWidget)
                         continue;
                     let key = this._actorKeys.get(wrap);
                     if (!key) {
@@ -793,11 +797,24 @@ class SnowEngine {
                                 return;
                             this._dropCap(newKey);
                             this._caps.delete(newKey);
+                            this._widgetRects.delete(newKey);
                         });
                         this._widgetHooks.push(hook);
                     }
-                    out.push({key, radius: themeRadius(wrap),
-                        rect: {x: Math.round(x), y: Math.round(y), width: Math.round(w), height: Math.round(h)}});
+
+                    if (layerMapped && wrap.is_mapped() && wrap.get_paint_opacity() >= 10) {
+                        const [x, y] = wrap.get_transformed_position();
+                        const [w, h] = wrap.get_transformed_size();
+                        if (!(w > 20 && h > 20) || y < 6)
+                            continue;
+                        const item = {key, radius: themeRadius(wrap),
+                            rect: {x: Math.round(x), y: Math.round(y), width: Math.round(w), height: Math.round(h)}};
+                        this._widgetRects.set(key, item);
+                        out.push(item);
+                    } else if (inOverview && this._widgetRects.has(key)) {
+                        const last = this._widgetRects.get(key);
+                        out.push({key, radius: last.radius, rect: {...last.rect}});
+                    }
                 }
             } catch (e) {
                 this._widgetLayers = null;
@@ -890,12 +907,25 @@ class SnowEngine {
         if (!this._grounds.length)
             return;
         const scale = Math.max(0.6, Math.min(2.5, this._totalWidth / 1600));
+        // «Snowfall» вимкнено: нові сніжинки не з'являються, ті, що в повітрі, долітають
+        const falling = this._cfg.snowfall;
         const target = Math.round(this._cfg.intensity * 3.2 * scale);
         const spread = this._time < 0.5;
-        while (this._flakes.length < target)
-            this._flakes.push(this._newFlake(spread));
-        if (this._flakes.length > target)
-            this._flakes.length = target;
+        if (falling) {
+            while (this._flakes.length < target)
+                this._flakes.push(this._newFlake(spread));
+            if (this._flakes.length > target)
+                this._flakes.length = target;
+        }
+        const respawn = () => (falling ? this._newFlake(false) : null);
+        // вимкнули — сніжинки в повітрі плавно тануть за 2,5 с; увімкнули — швидко проявляються
+        this._flakeAlpha = falling
+            ? Math.min(1, (this._flakeAlpha ?? 1) + dt * 2)
+            : Math.max(0, (this._flakeAlpha ?? 1) - dt / 2.5);
+        if (!falling && this._flakeAlpha <= 0) {
+            this._flakes = [];
+            return;
+        }
 
         // напрямок снігу: кут від вертикалі (+ вправо, − вліво) і, за бажанням, пориви вітру
         const tanA = Math.tan(this._cfg.windAngle * Math.PI / 180);
@@ -916,7 +946,7 @@ class SnowEngine {
                 const dx = f.x - m.x, dy = f.y - m.y, d2 = dx * dx + dy * dy;
                 if (d2 < 100) {
                     this._steam(f.x, f.y, 0.6);
-                    this._flakes[fi] = this._newFlake(false);
+                    this._flakes[fi] = respawn();
                     continue;
                 }
                 if (d2 < 3600) {
@@ -959,8 +989,10 @@ class SnowEngine {
             }
 
             if (landed)
-                this._flakes[fi] = this._newFlake(false);
+                this._flakes[fi] = respawn();
         }
+        if (!falling)
+            this._flakes = this._flakes.filter(Boolean);
     }
 
     // ---- курсор ----
@@ -1418,9 +1450,9 @@ class SnowEngine {
                 cr.newSubPath();
                 cr.arc(f.x, f.y, f.r, 0, TAU);
             }
-            cr.setSourceRGBA(1, 1, 1, 0.92);
+            cr.setSourceRGBA(1, 1, 1, 0.92 * (this._flakeAlpha ?? 1));
             cr.fillPreserve();
-            cr.setSourceRGBA(0.45, 0.55, 0.68, 0.35);
+            cr.setSourceRGBA(0.45, 0.55, 0.68, 0.35 * (this._flakeAlpha ?? 1));
             cr.setLineWidth(0.6);
             cr.stroke();
         }
@@ -1462,9 +1494,9 @@ class SnowEngine {
             cr.newSubPath();
             cr.arc(f.x, f.y, f.r, 0, TAU);
         }
-        cr.setSourceRGBA(1, 1, 1, 0.92);
+        cr.setSourceRGBA(1, 1, 1, 0.92 * (this._flakeAlpha ?? 1));
         cr.fillPreserve();
-        cr.setSourceRGBA(0.45, 0.55, 0.68, 0.35);
+        cr.setSourceRGBA(0.45, 0.55, 0.68, 0.35 * (this._flakeAlpha ?? 1));
         cr.setLineWidth(0.6);
         cr.stroke();
 
@@ -1959,7 +1991,9 @@ class SnowIndicator extends PanelMenu.Button {
         super._init(0.0, 'Snowcast');
         this._ext = ext;
         const settings = ext.getSettings();
-        this.add_child(new St.Icon({icon_name: 'weather-snow-symbolic', style_class: 'system-status-icon'}));
+        this._settings = settings;
+        this._icon = new St.Icon({icon_name: 'weather-snow-symbolic', style_class: 'system-status-icon'});
+        this.add_child(this._icon);
 
         const addSwitch = (label, key) => {
             const item = new PopupMenu.PopupSwitchMenuItem(label, settings.get_boolean(key));
@@ -1967,17 +2001,37 @@ class SnowIndicator extends PanelMenu.Button {
             const id = settings.connect(`changed::${key}`, () => item.setToggleState(settings.get_boolean(key)));
             item.connect('destroy', () => settings.disconnect(id));
             this.menu.addMenuItem(item);
+            return item;
         };
-        addSwitch(_('Snowfall'), 'enabled');
-        addSwitch(_('Snow on windows'), 'window-snow');
-        addSwitch(_('Snowplow'), 'plow-enabled');
-        addSwitch(_('Melt snow with the cursor'), 'cursor-clear');
+
+        // головний перемикач: вимикає все, але саме розширення лишається увімкненим
+        const master = addSwitch('Snowcast', 'enabled');
+        master.label.style = 'font-weight: bold;';
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        this.menu.addAction(_('🚜  Call the snowplow'), () => ext.engine?.callPlow());
-        this.menu.addAction(_('🧹  Clear all snow'), () => ext.engine?.clearAll());
+
+        this._dependent = [];
+        if (settings.settings_schema.has_key('snowfall'))
+            this._dependent.push(addSwitch(_('Snowfall'), 'snowfall'));
+        this._dependent.push(addSwitch(_('Snow on windows'), 'window-snow'));
+        this._dependent.push(addSwitch(_('Snowplow'), 'plow-enabled'));
+        this._dependent.push(addSwitch(_('Melt snow with the cursor'), 'cursor-clear'));
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        this._dependent.push(this.menu.addAction(_('🚜  Call the snowplow'), () => ext.engine?.callPlow()));
+        this._dependent.push(this.menu.addAction(_('🧹  Clear all snow'), () => ext.engine?.clearAll()));
         this.menu.addAction(_('🌬  Snow direction…'), () => ext.openWindDialog());
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this.menu.addAction(_('Settings…'), () => ext.openPreferences());
+
+        const enabledId = settings.connect('changed::enabled', () => this._syncEnabled());
+        this.connect('destroy', () => settings.disconnect(enabledId));
+        this._syncEnabled();
+    }
+
+    _syncEnabled() {
+        const on = this._settings.get_boolean('enabled');
+        this._icon.opacity = on ? 255 : 110;
+        for (const item of this._dependent)
+            item.setSensitive(on);
     }
 });
 

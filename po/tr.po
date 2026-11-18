@@ -68,8 +68,14 @@ msgstr "Yeni ayarların yüklenmesi için oturumu kapatıp yeniden açın."
 msgid "❄️ Snowfall"
 msgstr "❄️ Kar yağışı"
 
-msgid "Enable snowfall"
-msgstr "Kar yağışını etkinleştir"
+msgid "Enable Snowcast"
+msgstr "Snowcast'i etkinleştir"
+
+msgid "Turns everything off without disabling the extension"
+msgstr "Uzantıyı devre dışı bırakmadan her şeyi kapatır"
+
+msgid "When off, no new snow falls, but the settled snow stays"
+msgstr "Kapalıyken yeni kar yağmaz, ancak birikmiş kar yerinde kalır"
 
 msgid "Intensity"
 msgstr "Yoğunluk"

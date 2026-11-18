@@ -3,7 +3,11 @@
   <schema id="org.gnome.shell.extensions.snowcast" path="/org/gnome/shell/extensions/snowcast/">
     <key name="enabled" type="b">
       <default>true</default>
-      <summary>Snowfall enabled</summary>
+      <summary>Snowcast enabled (turns everything off without disabling the extension)</summary>
+    </key>
+    <key name="snowfall" type="b">
+      <default>true</default>
+      <summary>Falling snowflakes (when off, settled snow stays)</summary>
     </key>
     <key name="intensity" type="i">
       <range min="5" max="100"/>

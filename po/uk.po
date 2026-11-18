@@ -68,8 +68,14 @@ msgstr "Вийдіть із сеансу й увійдіть знову, щоб 
 msgid "❄️ Snowfall"
 msgstr "❄️ Снігопад"
 
-msgid "Enable snowfall"
-msgstr "Увімкнути снігопад"
+msgid "Enable Snowcast"
+msgstr "Увімкнути Snowcast"
+
+msgid "Turns everything off without disabling the extension"
+msgstr "Вимикає все, не вимикаючи саме розширення"
+
+msgid "When off, no new snow falls, but the settled snow stays"
+msgstr "Якщо вимкнути, новий сніг не падає, а той, що вже лежить, лишається"
 
 msgid "Intensity"
 msgstr "Інтенсивність"
