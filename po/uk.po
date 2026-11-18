@@ -1,0 +1,147 @@
+# Ukrainian translation for Snowcast
+msgid ""
+msgstr ""
+"Project-Id-Version: snowcast\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgid "Snowfall"
+msgstr "Снігопад"
+
+msgid "Snow on windows"
+msgstr "Сніг на вікнах"
+
+msgid "Snowplow"
+msgstr "Машинка-снігоприбиральник"
+
+msgid "Melt snow with the cursor"
+msgstr "Топити сніг курсором"
+
+msgid "🚜  Call the snowplow"
+msgstr "🚜  Викликати машинку"
+
+msgid "🧹  Clear all snow"
+msgstr "🧹  Прибрати весь сніг"
+
+msgid "🌬  Snow direction…"
+msgstr "🌬  Напрямок снігу…"
+
+msgid "Settings…"
+msgstr "Налаштування…"
+
+msgid "Snow direction"
+msgstr "Напрямок снігу"
+
+msgid "Drag the arrow with the mouse or move the slider"
+msgstr "Потягніть стрілку мишкою або рухайте повзунок"
+
+msgid "Snow angle"
+msgstr "Кут снігу"
+
+msgid "↓  Straight down"
+msgstr "↓  Прямо вниз"
+
+msgid "↙  %d° to the left"
+msgstr "↙  %d° вліво"
+
+msgid "↘  %d° to the right"
+msgstr "↘  %d° вправо"
+
+msgid "🌬  Wind gusts: on"
+msgstr "🌬  Пориви вітру: увімкнено"
+
+msgid "🌬  Wind gusts: off"
+msgstr "🌬  Пориви вітру: вимкнено"
+
+msgid "No wind"
+msgstr "Без вітру"
+
+msgid "Done"
+msgstr "Готово"
+
+msgid "Log out and back in to load the new settings."
+msgstr "Вийдіть із сеансу й увійдіть знову, щоб з’явилися нові налаштування."
+
+msgid "❄️ Snowfall"
+msgstr "❄️ Снігопад"
+
+msgid "Enable snowfall"
+msgstr "Увімкнути снігопад"
+
+msgid "Intensity"
+msgstr "Інтенсивність"
+
+msgid "How many snowflakes fall at once"
+msgstr "Скільки сніжинок падає одночасно"
+
+msgid "Snowdrift height"
+msgstr "Висота кучугур"
+
+msgid "Maximum snow height at the bottom of the screen, px"
+msgstr "Максимальна висота снігу внизу екрана, px"
+
+msgid "Snow sticks to the top edges of windows"
+msgstr "Сніг налипає на верхні краї вікон"
+
+msgid "Window corner radius"
+msgstr "Заокруглення кутів вікон"
+
+msgid "Snow doesn’t settle on rounded corners. Increase it if snow “hangs” over a corner"
+msgstr "Сніг не лягає на заокруглені кути. Збільште, якщо сніг «висить» над кутом"
+
+msgid "Snow inertia"
+msgstr "Інерція снігу"
+
+msgid "Snow slides when a window moves sharply and falls off the edge"
+msgstr "Сніг ковзає при різкому русі вікна й падає з краю"
+
+msgid "🌬 Wind"
+msgstr "🌬 Вітер"
+
+msgid "You can also set it with the mouse: snowflake icon → “Snow direction…”"
+msgstr "Те саме можна задати мишкою: значок сніжинки → «Напрямок снігу…»"
+
+msgid "Angle from vertical: minus — left, plus — right"
+msgstr "Кут від вертикалі: мінус — вліво, плюс — вправо"
+
+msgid "Wind gusts"
+msgstr "Пориви вітру"
+
+msgid "Snow drifts sideways, sometimes stronger, sometimes weaker"
+msgstr "Сніг то сильніше, то слабше зносить убік"
+
+msgid "🚜 Clearing"
+msgstr "🚜 Прибирання"
+
+msgid "Drives along the bottom of the screen from time to time"
+msgstr "Час від часу проїжджає внизу екрана"
+
+msgid "Snowplow interval"
+msgstr "Інтервал машинки"
+
+msgid "Seconds between runs"
+msgstr "Секунд між проїздами"
+
+msgid "The cursor melts snow, and steam rises above it"
+msgstr "Курсор розтоплює сніг, над ним піднімається пара"
+
+msgid "Other"
+msgstr "Інше"
+
+msgid "Hide in fullscreen"
+msgstr "Ховати в повноекранному режимі"
+
+msgid "Doesn’t get in the way of videos and games"
+msgstr "Не заважає відео та іграм"
+
+msgid "Frames per second"
+msgstr "Кадрів на секунду"
+
+msgid "Lower is easier on the CPU"
+msgstr "Менше — легше для процесора"
+
+msgid "Icon in the top bar"
+msgstr "Значок на верхній панелі"

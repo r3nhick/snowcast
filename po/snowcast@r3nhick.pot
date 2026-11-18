@@ -1,0 +1,142 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: snowcast\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Snowfall"
+msgstr ""
+
+msgid "Snow on windows"
+msgstr ""
+
+msgid "Snowplow"
+msgstr ""
+
+msgid "Melt snow with the cursor"
+msgstr ""
+
+msgid "🚜  Call the snowplow"
+msgstr ""
+
+msgid "🧹  Clear all snow"
+msgstr ""
+
+msgid "🌬  Snow direction…"
+msgstr ""
+
+msgid "Settings…"
+msgstr ""
+
+msgid "Snow direction"
+msgstr ""
+
+msgid "Drag the arrow with the mouse or move the slider"
+msgstr ""
+
+msgid "Snow angle"
+msgstr ""
+
+msgid "↓  Straight down"
+msgstr ""
+
+msgid "↙  %d° to the left"
+msgstr ""
+
+msgid "↘  %d° to the right"
+msgstr ""
+
+msgid "🌬  Wind gusts: on"
+msgstr ""
+
+msgid "🌬  Wind gusts: off"
+msgstr ""
+
+msgid "No wind"
+msgstr ""
+
+msgid "Done"
+msgstr ""
+
+msgid "Log out and back in to load the new settings."
+msgstr ""
+
+msgid "❄️ Snowfall"
+msgstr ""
+
+msgid "Enable snowfall"
+msgstr ""
+
+msgid "Intensity"
+msgstr ""
+
+msgid "How many snowflakes fall at once"
+msgstr ""
+
+msgid "Snowdrift height"
+msgstr ""
+
+msgid "Maximum snow height at the bottom of the screen, px"
+msgstr ""
+
+msgid "Snow sticks to the top edges of windows"
+msgstr ""
+
+msgid "Window corner radius"
+msgstr ""
+
+msgid "Snow doesn’t settle on rounded corners. Increase it if snow “hangs” over a corner"
+msgstr ""
+
+msgid "Snow inertia"
+msgstr ""
+
+msgid "Snow slides when a window moves sharply and falls off the edge"
+msgstr ""
+
+msgid "🌬 Wind"
+msgstr ""
+
+msgid "You can also set it with the mouse: snowflake icon → “Snow direction…”"
+msgstr ""
+
+msgid "Angle from vertical: minus — left, plus — right"
+msgstr ""
+
+msgid "Wind gusts"
+msgstr ""
+
+msgid "Snow drifts sideways, sometimes stronger, sometimes weaker"
+msgstr ""
+
+msgid "🚜 Clearing"
+msgstr ""
+
+msgid "Drives along the bottom of the screen from time to time"
+msgstr ""
+
+msgid "Snowplow interval"
+msgstr ""
+
+msgid "Seconds between runs"
+msgstr ""
+
+msgid "The cursor melts snow, and steam rises above it"
+msgstr ""
+
+msgid "Other"
+msgstr ""
+
+msgid "Hide in fullscreen"
+msgstr ""
+
+msgid "Doesn’t get in the way of videos and games"
+msgstr ""
+
+msgid "Frames per second"
+msgstr ""
+
+msgid "Lower is easier on the CPU"
+msgstr ""
+
+msgid "Icon in the top bar"
+msgstr ""

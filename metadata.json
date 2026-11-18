@@ -1,7 +1,7 @@
 {
   "uuid": "snowcast@r3nhick",
   "name": "Snowcast",
-  "description": "Сніг на робочому столі: сніжинки падають, налипають на верхні краї вікон і збираються кучугурами внизу екрана. Знизу їздить машинка-снігоприбиральник, а сніг можна розкидати курсором.",
+  "description": "Snow on your desktop: snowflakes fall over windows, pile up in drifts on top of windows, the dock and desktop widgets, and gather at the bottom of the screen. A little snowplow clears the snow and climbs onto the dock, and the cursor melts snow. Translations: English, Українська, Türkçe.",
   "shell-version": [
     "45",
     "46",
@@ -12,6 +12,7 @@
     "51"
   ],
   "settings-schema": "org.gnome.shell.extensions.snowcast",
-  "version": 15,
-  "url": "https://github.com/r3nhick/snowcast"
+  "version": 16,
+  "url": "https://github.com/r3nhick/snowcast",
+  "gettext-domain": "snowcast@r3nhick"
 }

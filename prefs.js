@@ -1,7 +1,7 @@
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
 
-import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 export default class SnowcastPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
@@ -24,36 +24,36 @@ export default class SnowcastPreferences extends ExtensionPreferences {
             group.add(row);
         };
 
-        const snow = new Adw.PreferencesGroup({title: '❄️ Снігопад'});
+        const snow = new Adw.PreferencesGroup({title: _('❄️ Snowfall')});
         page.add(snow);
-        sw(snow, 'enabled', 'Увімкнути снігопад');
-        spin(snow, 'intensity', 'Інтенсивність', 'Скільки сніжинок падає одночасно', 5, 100, 5);
-        spin(snow, 'max-snow', 'Висота кучугур', 'Максимальна висота снігу внизу екрана, px', 10, 80, 5);
-        sw(snow, 'window-snow', 'Сніг на вікнах', 'Сніг налипає на верхні краї вікон');
+        sw(snow, 'enabled', _('Enable snowfall'));
+        spin(snow, 'intensity', _('Intensity'), _('How many snowflakes fall at once'), 5, 100, 5);
+        spin(snow, 'max-snow', _('Snowdrift height'), _('Maximum snow height at the bottom of the screen, px'), 10, 80, 5);
+        sw(snow, 'window-snow', _('Snow on windows'), _('Snow sticks to the top edges of windows'));
         if (s.settings_schema.has_key('window-radius'))
-            spin(snow, 'window-radius', 'Заокруглення кутів вікон', 'Сніг не лягає на заокруглені кути. Збільште, якщо сніг «висить» над кутом', 0, 40, 1);
-        sw(snow, 'shake-off', 'Інерція снігу', 'Сніг ковзає при різкому русі вікна й падає з краю');
+            spin(snow, 'window-radius', _('Window corner radius'), _('Snow doesn’t settle on rounded corners. Increase it if snow “hangs” over a corner'), 0, 40, 1);
+        sw(snow, 'shake-off', _('Snow inertia'), _('Snow slides when a window moves sharply and falls off the edge'));
 
         if (s.settings_schema.has_key('wind-angle')) {
             const wind = new Adw.PreferencesGroup({
-                title: '🌬 Вітер',
-                description: 'Те саме можна задати мишкою: значок сніжинки → «Напрямок снігу…»',
+                title: _('🌬 Wind'),
+                description: _('You can also set it with the mouse: snowflake icon → “Snow direction…”'),
             });
             page.add(wind);
-            spin(wind, 'wind-angle', 'Напрямок снігу', 'Кут від вертикалі: мінус — вліво, плюс — вправо', -75, 75, 5);
-            sw(wind, 'wind-gusts', 'Пориви вітру', 'Сніг то сильніше, то слабше зносить убік');
+            spin(wind, 'wind-angle', _('Snow direction'), _('Angle from vertical: minus — left, plus — right'), -75, 75, 5);
+            sw(wind, 'wind-gusts', _('Wind gusts'), _('Snow drifts sideways, sometimes stronger, sometimes weaker'));
         }
 
-        const fun = new Adw.PreferencesGroup({title: '🚜 Прибирання'});
+        const fun = new Adw.PreferencesGroup({title: _('🚜 Clearing')});
         page.add(fun);
-        sw(fun, 'plow-enabled', 'Машинка-снігоприбиральник', 'Час від часу проїжджає внизу екрана');
-        spin(fun, 'plow-interval', 'Інтервал машинки', 'Секунд між проїздами', 10, 300, 5);
-        sw(fun, 'cursor-clear', 'Топити сніг курсором', 'Курсор розтоплює сніг, над ним піднімається пара');
+        sw(fun, 'plow-enabled', _('Snowplow'), _('Drives along the bottom of the screen from time to time'));
+        spin(fun, 'plow-interval', _('Snowplow interval'), _('Seconds between runs'), 10, 300, 5);
+        sw(fun, 'cursor-clear', _('Melt snow with the cursor'), _('The cursor melts snow, and steam rises above it'));
 
-        const misc = new Adw.PreferencesGroup({title: 'Інше'});
+        const misc = new Adw.PreferencesGroup({title: _('Other')});
         page.add(misc);
-        sw(misc, 'hide-on-fullscreen', 'Ховати в повноекранному режимі', 'Не заважає відео та іграм');
-        spin(misc, 'frame-rate', 'Кадрів на секунду', 'Менше — легше для процесора', 15, 60, 5);
-        sw(misc, 'show-indicator', 'Значок на верхній панелі');
+        sw(misc, 'hide-on-fullscreen', _('Hide in fullscreen'), _('Doesn’t get in the way of videos and games'));
+        spin(misc, 'frame-rate', _('Frames per second'), _('Lower is easier on the CPU'), 15, 60, 5);
+        sw(misc, 'show-indicator', _('Icon in the top bar'));
     }
 }

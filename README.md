@@ -13,7 +13,19 @@
 - **Теплий курсор.** Топить сніг, над ним піднімається пара.
 - **Сніг в огляді (Super)** видно так само, як віджети.
 
-Підтримуються Dash to Dock, Ubuntu Dock, dash2dock-lite і віджети [Desktop Widgets](https://github.com/r3nhick/desktop-widgets).
+Підтримуються Dash to Dock, Ubuntu Dock, dash2dock-lite і віджети Desktop Widgets.
+
+## Мови / Languages / Diller
+
+Інтерфейс доступний англійською (US), українською і турецькою. Мова вибирається автоматично, за мовою системи.
+
+*Snowcast speaks English, Ukrainian and Turkish — the language follows your system locale.*
+
+Як додати переклад: скопіюйте `po/snowcast@r3nhick.pot` у `po/<мова>.po`, перекладіть рядки й скомпілюйте:
+
+```
+msgfmt po/<мова>.po -o locale/<мова>/LC_MESSAGES/snowcast@r3nhick.mo
+```
 
 ## Встановлення
 

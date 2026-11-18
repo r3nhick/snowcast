@@ -1,0 +1,147 @@
+# Turkish translation for Snowcast
+msgid ""
+msgstr ""
+"Project-Id-Version: snowcast\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Snowfall"
+msgstr "Kar yağışı"
+
+msgid "Snow on windows"
+msgstr "Pencerelerde kar"
+
+msgid "Snowplow"
+msgstr "Kar küreme aracı"
+
+msgid "Melt snow with the cursor"
+msgstr "İmleçle karı erit"
+
+msgid "🚜  Call the snowplow"
+msgstr "🚜  Kar küreme aracını çağır"
+
+msgid "🧹  Clear all snow"
+msgstr "🧹  Tüm karı temizle"
+
+msgid "🌬  Snow direction…"
+msgstr "🌬  Kar yönü…"
+
+msgid "Settings…"
+msgstr "Ayarlar…"
+
+msgid "Snow direction"
+msgstr "Kar yönü"
+
+msgid "Drag the arrow with the mouse or move the slider"
+msgstr "Oku fareyle sürükleyin veya kaydırıcıyı hareket ettirin"
+
+msgid "Snow angle"
+msgstr "Kar açısı"
+
+msgid "↓  Straight down"
+msgstr "↓  Dümdüz aşağı"
+
+msgid "↙  %d° to the left"
+msgstr "↙  %d° sola"
+
+msgid "↘  %d° to the right"
+msgstr "↘  %d° sağa"
+
+msgid "🌬  Wind gusts: on"
+msgstr "🌬  Rüzgâr esintileri: açık"
+
+msgid "🌬  Wind gusts: off"
+msgstr "🌬  Rüzgâr esintileri: kapalı"
+
+msgid "No wind"
+msgstr "Rüzgârsız"
+
+msgid "Done"
+msgstr "Tamam"
+
+msgid "Log out and back in to load the new settings."
+msgstr "Yeni ayarların yüklenmesi için oturumu kapatıp yeniden açın."
+
+msgid "❄️ Snowfall"
+msgstr "❄️ Kar yağışı"
+
+msgid "Enable snowfall"
+msgstr "Kar yağışını etkinleştir"
+
+msgid "Intensity"
+msgstr "Yoğunluk"
+
+msgid "How many snowflakes fall at once"
+msgstr "Aynı anda kaç kar tanesi düşer"
+
+msgid "Snowdrift height"
+msgstr "Kar yığını yüksekliği"
+
+msgid "Maximum snow height at the bottom of the screen, px"
+msgstr "Ekranın altındaki en fazla kar yüksekliği, px"
+
+msgid "Snow sticks to the top edges of windows"
+msgstr "Kar pencerelerin üst kenarlarına yapışır"
+
+msgid "Window corner radius"
+msgstr "Pencere köşe yarıçapı"
+
+msgid "Snow doesn’t settle on rounded corners. Increase it if snow “hangs” over a corner"
+msgstr "Kar yuvarlatılmış köşelere yerleşmez. Kar bir köşenin üzerinde “asılı” kalıyorsa artırın"
+
+msgid "Snow inertia"
+msgstr "Kar ataleti"
+
+msgid "Snow slides when a window moves sharply and falls off the edge"
+msgstr "Pencere aniden hareket ettiğinde kar kayar ve kenardan düşer"
+
+msgid "🌬 Wind"
+msgstr "🌬 Rüzgâr"
+
+msgid "You can also set it with the mouse: snowflake icon → “Snow direction…”"
+msgstr "Bunu fareyle de ayarlayabilirsiniz: kar tanesi simgesi → “Kar yönü…”"
+
+msgid "Angle from vertical: minus — left, plus — right"
+msgstr "Dikeyden açı: eksi — sola, artı — sağa"
+
+msgid "Wind gusts"
+msgstr "Rüzgâr esintileri"
+
+msgid "Snow drifts sideways, sometimes stronger, sometimes weaker"
+msgstr "Kar bazen daha güçlü, bazen daha zayıf şekilde yana savrulur"
+
+msgid "🚜 Clearing"
+msgstr "🚜 Temizleme"
+
+msgid "Drives along the bottom of the screen from time to time"
+msgstr "Zaman zaman ekranın altından geçer"
+
+msgid "Snowplow interval"
+msgstr "Kar küreme aracı aralığı"
+
+msgid "Seconds between runs"
+msgstr "Geçişler arası saniye"
+
+msgid "The cursor melts snow, and steam rises above it"
+msgstr "İmleç karı eritir ve üzerinden buhar yükselir"
+
+msgid "Other"
+msgstr "Diğer"
+
+msgid "Hide in fullscreen"
+msgstr "Tam ekranda gizle"
+
+msgid "Doesn’t get in the way of videos and games"
+msgstr "Videolara ve oyunlara engel olmaz"
+
+msgid "Frames per second"
+msgstr "Saniyedeki kare sayısı"
+
+msgid "Lower is easier on the CPU"
+msgstr "Daha düşük değer işlemciyi daha az yorar"
+
+msgid "Icon in the top bar"
+msgstr "Üst çubukta simge"

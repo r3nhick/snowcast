@@ -11,7 +11,7 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
 import * as Slider from 'resource:///org/gnome/shell/ui/slider.js';
-import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
+import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 const COLW = 3;          // ширина однієї «колонки» снігу, px
 const CAP_BAND = 46;     // макс. можлива висота «гірки» на вікні, px
@@ -1739,8 +1739,10 @@ const ANGLE_MAX = 75;
 
 function describeAngle(a) {
     if (a === 0)
-        return '↓  Прямо вниз';
-    return a < 0 ? `↙  ${-a}° вліво` : `↘  ${a}° вправо`;
+        return _('↓  Straight down');
+    return a < 0
+        ? _('↙  %d° to the left').replace('%d', String(-a))
+        : _('↘  %d° to the right').replace('%d', String(a));
 }
 
 const WindDialog = GObject.registerClass(
@@ -1757,11 +1759,11 @@ class WindDialog extends ModalDialog.ModalDialog {
 
         const box = this.contentLayout;
         box.add_child(new St.Label({
-            text: 'Напрямок снігу', x_align: Clutter.ActorAlign.CENTER,
+            text: _('Snow direction'), x_align: Clutter.ActorAlign.CENTER,
             style: 'font-weight: bold; font-size: 15pt; margin-bottom: 2px;',
         }));
         box.add_child(new St.Label({
-            text: 'Потягніть стрілку мишкою або рухайте повзунок', x_align: Clutter.ActorAlign.CENTER,
+            text: _('Drag the arrow with the mouse or move the slider'), x_align: Clutter.ActorAlign.CENTER,
             style: 'font-size: 10pt; color: #9aa4b1; margin-bottom: 10px;',
         }));
 
@@ -1794,7 +1796,7 @@ class WindDialog extends ModalDialog.ModalDialog {
         this._slider.set_width(PW);
         this._slider.x_align = Clutter.ActorAlign.CENTER;
         this._slider.style = 'margin-top: 6px;';
-        this._slider.accessible_name = 'Кут снігу';
+        this._slider.accessible_name = _('Snow angle');
         this._slider.connect('notify::value', () => {
             if (!this._syncing)
                 this._setAngle(Math.round(this._slider.value * 2 * ANGLE_MAX - ANGLE_MAX));
@@ -1812,8 +1814,8 @@ class WindDialog extends ModalDialog.ModalDialog {
         box.add_child(this._gusts);
 
         this.setButtons([
-            {label: 'Без вітру', action: () => this._setAngle(0)},
-            {label: 'Готово', action: () => this.close(), default: true},
+            {label: _('No wind'), action: () => this._setAngle(0)},
+            {label: _('Done'), action: () => this.close(), default: true},
         ]);
 
         this._settingsId = settings.connect('changed', () => this._sync());
@@ -1848,7 +1850,7 @@ class WindDialog extends ModalDialog.ModalDialog {
         this._slider.value = (a + ANGLE_MAX) / (2 * ANGLE_MAX);
         const g = this._settings.get_boolean('wind-gusts');
         this._gusts.checked = g;
-        this._gusts.label = g ? '🌬  Пориви вітру: увімкнено' : '🌬  Пориви вітру: вимкнено';
+        this._gusts.label = g ? _('🌬  Wind gusts: on') : _('🌬  Wind gusts: off');
         this._syncing = false;
         this._label.text = describeAngle(a);
         this._area.queue_repaint();
@@ -1966,16 +1968,16 @@ class SnowIndicator extends PanelMenu.Button {
             item.connect('destroy', () => settings.disconnect(id));
             this.menu.addMenuItem(item);
         };
-        addSwitch('Снігопад', 'enabled');
-        addSwitch('Сніг на вікнах', 'window-snow');
-        addSwitch('Машинка-снігоприбиральник', 'plow-enabled');
-        addSwitch('Топити сніг курсором', 'cursor-clear');
+        addSwitch(_('Snowfall'), 'enabled');
+        addSwitch(_('Snow on windows'), 'window-snow');
+        addSwitch(_('Snowplow'), 'plow-enabled');
+        addSwitch(_('Melt snow with the cursor'), 'cursor-clear');
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        this.menu.addAction('🚜  Викликати машинку', () => ext.engine?.callPlow());
-        this.menu.addAction('🧹  Прибрати весь сніг', () => ext.engine?.clearAll());
-        this.menu.addAction('🌬  Напрямок снігу…', () => ext.openWindDialog());
+        this.menu.addAction(_('🚜  Call the snowplow'), () => ext.engine?.callPlow());
+        this.menu.addAction(_('🧹  Clear all snow'), () => ext.engine?.clearAll());
+        this.menu.addAction(_('🌬  Snow direction…'), () => ext.openWindDialog());
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        this.menu.addAction('Налаштування…', () => ext.openPreferences());
+        this.menu.addAction(_('Settings…'), () => ext.openPreferences());
     }
 });
 
@@ -1995,7 +1997,7 @@ export default class SnowcastExtension extends Extension {
 
     openWindDialog() {
         if (!this._settings.settings_schema.has_key('wind-angle')) {
-            Main.notify('Snowcast', 'Вийдіть із сеансу й увійдіть знову, щоб з’явилися нові налаштування.');
+            Main.notify('Snowcast', _('Log out and back in to load the new settings.'));
             return;
         }
         this._windDialog?.close();
