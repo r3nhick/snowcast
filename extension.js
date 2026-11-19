@@ -17,7 +17,12 @@ import {UpdateChecker} from './lib/updates.js';
 
 const COLW = 3;          // ширина однієї «колонки» снігу, px
 const CAP_BAND = 46;
-const PREVIEW_BAND = 48;    // висота смужки зі снігом над мініатюрою вікна в огляді     // макс. можлива висота «гірки» на вікні, px
+const PREVIEW_BAND = 48;    // висота смужки зі снігом над мініатюрою вікна в огляді
+const LIFT_ROOM = 30;       // місце над шапкою для підстрибування
+const PLOW_CANVAS = 300;    // полотно машинки: квадрат навколо неї
+const REPAINT_SLOW = 0.12;  // повільне накопичення снігу перемальовуємо не частіше ніж ~8 разів/с
+const IDLE_MS = 250;        // коли нічого не рухається — лише 4 перевірки на секунду
+const SPRITE = 16;          // базовий розмір копій-сніжинок (далі масштабуються)     // макс. можлива висота «гірки» на вікні, px
 const TAU = Math.PI * 2;
 const PLOW_SPEED = 115;  // px/с
 
@@ -158,9 +163,10 @@ class SnowEngine {
         this._readConfig();
         this._settingsId = settings.connect('changed', () => this._readConfig());
 
-        this._area = new St.DrawingArea({reactive: false, x: 0, y: 0});
-        this._area.connect('repaint', area => this._draw(area));
-        Main.layoutManager.uiGroup.insert_child_above(this._area, global.window_group);
+        this._winSignals = new Map();
+        this._kickUntil = 0;
+        this._sourceId = 0;
+        this._buildLayers();
 
         // окремий шар «фону» для огляду (Super): його копії ставимо у фон робочих просторів,
         // як це робить Desktop Widgets. Сам шар невидимий (opacity 0) — Clone малює його повністю.
@@ -189,15 +195,26 @@ class SnowEngine {
         this._monitorsId = Main.layoutManager.connect('monitors-changed', () => this._setupMonitors());
         this._setupMonitors();
 
-        this._timeline = new Clutter.Timeline({actor: global.stage, duration: 1000, repeat_count: -1});
-        this._frameId = this._timeline.connect('new-frame', () => this._tick());
-        this._timeline.start();
+        // Кадри — звичайним таймером з адаптивною частотою (_wantedInterval), а не
+        // Clutter.Timeline: той будив би композитор на кожен кадр монітора (60–144 Гц).
+        this._startTimer(Math.round(1000 / this._cfg.fps));
     }
 
     destroy() {
-        this._timeline.disconnect(this._frameId);
-        this._timeline.stop();
-        this._timeline = null;
+        if (this._sourceId) {
+            GLib.source_remove(this._sourceId);
+            this._sourceId = 0;
+        }
+        for (const [w, ids] of this._winSignals.values()) {
+            for (const id of ids) {
+                try {
+                    w.disconnect(id);
+                } catch (e) {
+                    // вікно вже зникло
+                }
+            }
+        }
+        this._winSignals.clear();
         Main.layoutManager.disconnect(this._monitorsId);
         this._settings.disconnect(this._settingsId);
         for (const id of this._wmIds)
@@ -216,8 +233,16 @@ class SnowEngine {
         this._clearPreviewSnow();
         this._bgArea.destroy();
         this._bgArea = null;
-        this._area.destroy();
-        this._area = null;
+        this._layer.destroy();          // разом з усіма полотнами й копіями всередині
+        this._layer = null;
+        for (const sprite of Object.values(this._sprites))
+            sprite.destroy();
+        this._sprites = {};
+        this._capActors.clear();
+        this._plowActors.clear();
+        this._groundActors = [];
+        this._flakeActors = [];
+        this._puffActors = [];
         this._caps.clear();
     }
 
@@ -271,7 +296,10 @@ class SnowEngine {
         });
         this._groundProfiles();
         this._totalWidth = this._grounds.reduce((a, g) => a + g.width, 0) || 1;
-        this._area.set_size(maxX, maxY);
+        this._layer.set_size(maxX, maxY);
+        for (const l of [this._capsLayer, this._flakesLayer, this._puffsLayer, this._fxLayer])
+            l.set_size(maxX, maxY);
+        this._rebuildGroundActors();
         const pm = Main.layoutManager.primaryMonitor;
         if (pm)
             this._bgArea.set_size(pm.width, pm.height);
@@ -305,43 +333,467 @@ class SnowEngine {
             this._last = now;
             return;
         }
-        let dt = now - this._last;
-        const fps = this._animating ? Math.max(60, this._cfg.fps) : this._cfg.fps;
-        if (dt < 0.9 / fps)
-            return;
+        // у режимі очікування кадри рідкі — даємо таймерам (машинка тощо) йти в реальному часі
+        const dt = Math.min(now - this._last, this._interval >= 200 ? 0.25 : 0.05);
         this._last = now;
-        dt = Math.min(dt, 0.05);
+        if (dt <= 0)
+            return;
 
         const fw = global.display.get_focus_window();
-        const hidden = this._cfg.hideFs && fw && fw.is_fullscreen();
-        this._area.opacity = hidden ? 0 : 255;
-        if (hidden)
+        this._hidden = !!(this._cfg.hideFs && fw && fw.is_fullscreen());
+        this._layer.opacity = this._hidden ? 0 : 255;
+        if (this._hidden)
             return;
 
-        this._time += dt;
-        this._readWindows(dt);
-        this._updateFocusRect();
-        this._updateObstacles();
-        this._updatePointer(dt);
-        this._updateFlakes(dt);
-        this._updatePuffs(dt);
-        for (const g of this._grounds) {
-            relax(g.h, g.c, 1.2);
-            this._updatePlow(g, dt);
+        this._inTick = true;
+        try {
+            this._time += dt;
+            this._readWindows(dt);
+            this._updateFocusRect();
+            this._updateObstacles();
+            this._updatePointer(dt);
+            this._updateFlakes(dt);
+            this._updatePuffs(dt);
+            for (const g of this._grounds) {
+                relax(g.h, g.c, 1.2);
+                this._updatePlow(g, dt);
+            }
+            for (const w of this._windows) {
+                relax(w.cap.h, w.cap.c, 1.0);
+                this._enforceCapacity(w);
+            }
+            this._updateCapPlows(dt);
+            this._animating = this._windows.some(w => w.cap.animating) || this._capPlows.length > 0 ||
+                this._grounds.some(g => g.plow.active);
+            this._forcePlow = false;
+            this._render(now);
+            if (this._ovClones.size)
+                this._bgArea.queue_repaint();
+            if (Main.overview.visible || Main.overview.visibleTarget)
+                this._syncPreviewSnow();
+        } finally {
+            this._inTick = false;
         }
+    }
+
+    // ---------- частота кадрів ----------
+    _wantedInterval() {
+        if (this._hidden)
+            return 500;
+        const now = GLib.get_monotonic_time() / 1e6;
+        const fps = this._cfg.fps;
+        if (this._animating || now < this._kickUntil)
+            return Math.round(1000 / Math.max(60, fps));     // анімації й рух вікон — плавно
+        if (this._flakes.length || this._puffs.length || (this._heat ?? 0) > 0.01)
+            return Math.round(1000 / fps);                   // падає сніг — частота з налаштувань
+        return IDLE_MS;                                      // нічого не рухається
+    }
+
+    _startTimer(ms) {
+        this._interval = ms;
+        this._sourceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
+            this._tick();
+            const want = this._wantedInterval();
+            if (want !== this._interval) {
+                this._sourceId = 0;
+                this._startTimer(want);
+                return GLib.SOURCE_REMOVE;
+            }
+            return GLib.SOURCE_CONTINUE;
+        });
+    }
+
+    // щось почало рухатися (вікно, док) — одразу переходимо на плавні кадри
+    _kick() {
+        this._kickUntil = GLib.get_monotonic_time() / 1e6 + 0.6;
+        if (this._inTick || !this._sourceId)
+            return;                    // після кадру _startTimer сам вибере нову частоту
+        const fast = Math.round(1000 / Math.max(60, this._cfg.fps));
+        if (this._interval > fast) {
+            GLib.source_remove(this._sourceId);
+            this._sourceId = 0;
+            this._startTimer(fast);
+        }
+    }
+
+    // ---------- малювання: GPU-копії й маленькі полотна замість одного на весь екран ----------
+    _buildLayers() {
+        this._layer = new Clutter.Actor({reactive: false, name: 'snowcast'});
+        Main.layoutManager.uiGroup.insert_child_above(this._layer, global.window_group);
+        this._capsLayer = new Clutter.Actor({reactive: false});
+        this._flakesLayer = new Clutter.Actor({reactive: false});
+        this._puffsLayer = new Clutter.Actor({reactive: false});
+        this._fxLayer = new Clutter.Actor({reactive: false});
+        for (const l of [this._capsLayer, this._flakesLayer, this._puffsLayer, this._fxLayer])
+            this._layer.add_child(l);
+
+        // Спрайти малюються один раз; на екрані — їхні копії (Clutter.Clone).
+        // Самі спрайти невидимі (opacity 0): копія малює джерело зі своєю прозорістю.
+        const disc = (r, g, b, a, ring) => (cr, size) => {
+            cr.arc(size / 2, size / 2, size / 2 - 1.5, 0, TAU);
+            cr.setSourceRGBA(r, g, b, a);
+            if (ring) {
+                cr.fillPreserve();
+                cr.setSourceRGBA(0.45, 0.55, 0.68, 0.35);
+                cr.setLineWidth(3);
+                cr.stroke();
+            } else {
+                cr.fill();
+            }
+        };
+        this._sprites = {
+            flake: this._makeSprite(32, disc(1, 1, 1, 0.92, true)),
+            snow: this._makeSprite(32, disc(1, 1, 1, 1, false)),
+            steam: this._makeSprite(32, disc(0.93, 0.96, 1, 0.42, false)),
+            smoke: this._makeSprite(32, disc(0.5, 0.5, 0.52, 0.3, false)),
+        };
+        this._glow = new St.DrawingArea({reactive: false, width: 60, height: 60, opacity: 0});
+        this._glow.connect('repaint', area => {
+            const cr = area.get_context();
+            const grad = new Cairo.RadialGradient(30, 30, 0, 30, 30, 30);
+            grad.addColorStopRGBA(0, 1, 0.62, 0.3, 0.22);
+            grad.addColorStopRGBA(1, 1, 0.62, 0.3, 0);
+            cr.setSource(grad);
+            cr.arc(30, 30, 30, 0, TAU);
+            cr.fill();
+            cr.$dispose();
+        });
+        this._fxLayer.add_child(this._glow);
+
+        this._capActors = new Map();
+        this._plowActors = new Map();
+        this._groundActors = [];
+        this._flakeActors = [];
+        this._puffActors = [];
+        this._radiusCache = new WeakMap();
+        this._widgetCache = new WeakMap();
+    }
+
+    _makeSprite(size, paint) {
+        const sprite = new St.DrawingArea({reactive: false, width: size, height: size, opacity: 0});
+        sprite.connect('repaint', area => {
+            const cr = area.get_context();
+            paint(cr, size);
+            cr.$dispose();
+        });
+        Main.layoutManager.uiGroup.add_child(sprite);
+        return sprite;
+    }
+
+    _render(now) {
+        this._renderGrounds(now);
+        this._renderCaps(now);
+        this._renderFlakes();
+        this._renderPuffs();
+        this._renderPlows();
+        const glow = this._glow;
+        if ((this._heat ?? 0) > 0.02 && this._cfg.cursor) {
+            glow.set_translation(this._mouse.x - 30, this._mouse.y - 30, 0);
+            glow.opacity = Math.round(255 * this._heat);
+        } else if (glow.opacity) {
+            glow.opacity = 0;
+        }
+    }
+
+    _insideFocus(x, y) {
+        const fr = this._focusRect;
+        return !!fr && x > fr.x && x < fr.x + fr.width && y > fr.y && y < fr.y + fr.height;
+    }
+
+    // одна копія спрайта: розмір сталий (без перекомпонування), масштаб і зсув — лише перетворення
+    _newClone(source, layer) {
+        const c = new Clutter.Clone({source, reactive: false, width: SPRITE, height: SPRITE});
+        layer.add_child(c);
+        c._src = source;
+        c._d = -1;
+        c._op = 255;
+        return c;
+    }
+
+    _renderFlakes() {
+        const n = this._flakes.length;
+        const pool = this._flakeActors;
+        while (pool.length < n)
+            pool.push(this._newClone(this._sprites.flake, this._flakesLayer));
+        while (pool.length > n)
+            pool.pop().destroy();
+        for (let i = 0; i < n; i++) {
+            const f = this._flakes[i], c = pool[i];
+            const d = f.r * 2;
+            if (c._d !== d) {
+                c.set_scale(d / SPRITE, d / SPRITE);
+                c._d = d;
+            }
+            c.set_translation(f.x - f.r, f.y - f.r, 0);
+            const op = this._insideFocus(f.x, f.y) ? 0 : 255;
+            if (c._op !== op) {
+                c.opacity = op;
+                c._op = op;
+            }
+        }
+        const fa = Math.round(255 * (this._flakeAlpha ?? 1));
+        if (this._flakesLayer.opacity !== fa)
+            this._flakesLayer.opacity = fa;
+    }
+
+    _renderPuffs() {
+        const n = this._puffs.length;
+        const pool = this._puffActors;
+        while (pool.length < n)
+            pool.push(this._newClone(this._sprites.snow, this._puffsLayer));
+        for (let i = 0; i < pool.length; i++) {
+            const c = pool[i];
+            if (i >= n) {
+                if (c._op !== 0) {
+                    c.opacity = 0;
+                    c._op = 0;
+                }
+                continue;
+            }
+            const p = this._puffs[i];
+            let src, r, alpha;
+            if (p.steam) {
+                src = this._sprites.steam;
+                r = p.r + (1 - p.life) * 6;
+                alpha = p.life < 0.8 ? p.life / 0.8 : (1 - p.life) * 5;
+            } else if (p.smoke) {
+                src = this._sprites.smoke;
+                r = p.r + (1 - p.life) * 7;
+                alpha = p.life;
+            } else {
+                src = this._sprites.snow;
+                r = p.r;
+                alpha = Math.min(1, p.life * 1.4);
+            }
+            if (c._src !== src) {
+                c.set_source(src);
+                c._src = src;
+            }
+            const d = Math.max(1, r * 2);
+            if (c._d !== d) {
+                c.set_scale(d / SPRITE, d / SPRITE);
+                c._d = d;
+            }
+            c.set_translation(p.x - d / 2, p.y - d / 2, 0);
+            const op = this._insideFocus(p.x, p.y) ? 0 : Math.round(255 * Math.max(0, Math.min(1, alpha)));
+            if (c._op !== op) {
+                c.opacity = op;
+                c._op = op;
+            }
+        }
+        // пул не росте без кінця після сплеску частинок
+        if (pool.length > n + 200) {
+            for (const c of pool.splice(n + 50))
+                c.destroy();
+        }
+    }
+
+    // сніг на кожній поверхні — своє невелике полотно; рух вікна лише зсуває його,
+    // а перемальовується воно, тільки коли сніг справді змінився
+    _renderCaps(now) {
+        const seen = new Set();
         for (const w of this._windows) {
-            relax(w.cap.h, w.cap.c, 1.0);
-            this._enforceCapacity(w);
+            seen.add(w.key);
+            let a = this._capActors.get(w.key);
+            if (!a) {
+                a = new St.DrawingArea({reactive: false});
+                a.connect('repaint', area => this._paintCap(area));
+                this._capsLayer.add_child(a);
+                this._capActors.set(w.key, a);
+                a._sig = null;
+                a._sum = 0;
+                a._cov = -1;
+                a._painted = 0;
+            }
+            a._surf = w;
+            const W = Math.max(1, Math.ceil(w.rect.width)), H = CAP_BAND + LIFT_ROOM + 3;
+            if (a.width !== W || a.height !== H) {
+                a.set_size(W, H);
+                a._sig = null;
+            }
+            a.set_translation(w.rect.x, w.rect.y - CAP_BAND - LIFT_ROOM, 0);
+            if (!a.visible)
+                a.show();
+
+            const h = w.cap.h, cov = w.covered;
+            let sum = 0, covSig = 0;
+            for (let i = 0; i < h.length; i++)
+                sum += h[i];
+            for (let i = 0; i < cov.length; i++) {
+                if (cov[i])
+                    covSig += i + 1;
+            }
+            const sig = `${Math.round(sum * 20)}:${covSig}:${h.length}`;
+            if (w.cap.animating || sig !== a._sig) {
+                const urgent = w.cap.animating || a._sig === null || covSig !== a._cov ||
+                    Math.abs(sum - a._sum) > 3 || now - a._painted > REPAINT_SLOW;
+                if (urgent) {
+                    a._sig = w.cap.animating ? null : sig;
+                    a._sum = sum;
+                    a._cov = covSig;
+                    a._painted = now;
+                    a.queue_repaint();
+                }
+            }
         }
-        this._updateCapPlows(dt);
-        this._animating = this._windows.some(w => w.cap.animating) || this._capPlows.length > 0 ||
-            this._grounds.some(g => g.plow.active);
-        this._forcePlow = false;
-        this._area.queue_repaint();
-        if (this._ovClones.size)
-            this._bgArea.queue_repaint();
-        if (Main.overview.visible || Main.overview.visibleTarget)
-            this._syncPreviewSnow();
+        for (const [key, a] of [...this._capActors]) {
+            if (seen.has(key))
+                continue;
+            if (!this._caps.has(key)) {
+                a.destroy();
+                this._capActors.delete(key);
+            } else if (a.visible) {
+                a.hide();
+            }
+        }
+    }
+
+    _paintCap(area) {
+        const cr = area.get_context();
+        cr.setOperator(Cairo.Operator.CLEAR);
+        cr.paint();
+        cr.setOperator(Cairo.Operator.OVER);
+        const w = area._surf;
+        if (w) {
+            const base = CAP_BAND + LIFT_ROOM;
+            if (w.cap.animating) {
+                const b = this._bounceShape(w.cap);
+                this._drawCap(cr, 0, base, b.h, w.covered, w.rect.width, b.off);
+            } else {
+                this._drawCap(cr, 0, base, w.cap.h, w.covered, w.rect.width, w.cap.off);
+            }
+        }
+        cr.$dispose();
+    }
+
+    _rebuildGroundActors() {
+        for (const a of this._groundActors ?? [])
+            a.destroy();
+        this._groundActors = this._grounds.map((_g, i) => {
+            const a = new St.DrawingArea({reactive: false});
+            a.connect('repaint', area => this._paintGround(area, i));
+            this._capsLayer.insert_child_at_index(a, 0);
+            a._sig = null;
+            a._sum = 0;
+            a._fr = '';
+            a._painted = 0;
+            return a;
+        });
+    }
+
+    _renderGrounds(now) {
+        const fr = this._focusRect;
+        const frSig = fr ? `${fr.x},${fr.y},${fr.width},${fr.height}` : '';
+        this._grounds.forEach((g, i) => {
+            const a = this._groundActors[i];
+            if (!a)
+                return;
+            const GH = Math.ceil(this._cfg.maxSnow) + 8;
+            if (a.width !== g.width || a.height !== GH) {
+                a.set_size(g.width, GH);
+                a._sig = null;
+            }
+            a.set_translation(g.x, g.y + g.height - GH, 0);
+            let sum = 0;
+            for (let k = 0; k < g.h.length; k++)
+                sum += g.h[k];
+            const sig = `${Math.round(sum * 20)}|${frSig}`;
+            if (sig !== a._sig) {
+                const urgent = a._sig === null || frSig !== a._fr || Math.abs(sum - a._sum) > 3 ||
+                    now - a._painted > REPAINT_SLOW;
+                if (urgent) {
+                    a._sig = sig;
+                    a._sum = sum;
+                    a._fr = frSig;
+                    a._painted = now;
+                    a.queue_repaint();
+                }
+            }
+        });
+    }
+
+    // активне вікно «перед» снігом: вирізаємо його з полотна (у локальних координатах)
+    _clipFocus(cr, area, ox, oy) {
+        const fr = this._focusRect;
+        if (!fr)
+            return;
+        cr.rectangle(0, 0, area.width, area.height);
+        roundRect(cr, fr.x - ox, fr.y - oy, fr.width, fr.height, fr.radius);
+        cr.setFillRule(Cairo.FillRule.EVEN_ODD);
+        cr.clip();
+        cr.setFillRule(Cairo.FillRule.WINDING);
+    }
+
+    _paintGround(area, i) {
+        const cr = area.get_context();
+        cr.setOperator(Cairo.Operator.CLEAR);
+        cr.paint();
+        cr.setOperator(Cairo.Operator.OVER);
+        const g = this._grounds[i];
+        if (g) {
+            this._clipFocus(cr, area, g.x, g.y + g.height - area.height);
+            this._drawCap(cr, 0, area.height + 1, g.h, null, g.width);
+        }
+        cr.$dispose();
+    }
+
+    _renderPlows() {
+        const active = new Set();
+        const show = (p, mini) => {
+            active.add(p);
+            let a = this._plowActors.get(p);
+            if (!a) {
+                a = new St.DrawingArea({reactive: false});
+                a.connect('repaint', area => this._paintPlow(area));
+                this._fxLayer.insert_child_at_index(a, 0);
+                this._plowActors.set(p, a);
+            }
+            a._plow = p;
+            const S = mini ? Math.ceil(PLOW_CANVAS * Math.max(0.35, p.scale ?? 1)) : PLOW_CANVAS;
+            if (a.width !== S || a.height !== S)
+                a.set_size(S, S);
+            a.set_translation(p.px - S / 2, p.py - S / 2, 0);
+            a.opacity = Math.round(255 * (mini ? Math.min(1, p.alpha) : 1));
+            a.queue_repaint();
+        };
+        for (const g of this._grounds) {
+            if (g.plow.active)
+                show(g.plow, false);
+        }
+        for (const p of this._capPlows ?? []) {
+            if (p.alpha >= 0.02)
+                show(p, true);
+        }
+        for (const [p, a] of [...this._plowActors]) {
+            if (!active.has(p)) {
+                a.destroy();
+                this._plowActors.delete(p);
+            }
+        }
+    }
+
+    _paintPlow(area) {
+        const cr = area.get_context();
+        cr.setOperator(Cairo.Operator.CLEAR);
+        cr.paint();
+        cr.setOperator(Cairo.Operator.OVER);
+        const p = area._plow;
+        if (p) {
+            const S = area.width;
+            this._clipFocus(cr, area, p.px - S / 2, p.py - S / 2);
+            this._drawPlow(cr, p, S / 2, S / 2);
+        }
+        cr.$dispose();
+    }
+
+    // радіус заокруглення з теми — кешуємо на 3 с (get_theme_node щокадру не потрібен)
+    _radiusOf(actor) {
+        const c = this._radiusCache.get(actor);
+        if (c && this._time - c.t < 3)
+            return c.r;
+        const r = themeRadius(actor);
+        this._radiusCache.set(actor, {r, t: this._time});
+        return r;
     }
 
     // активне вікно, «перед» яким сніг не малюється (якщо ввімкнено в налаштуваннях)
@@ -411,6 +863,18 @@ class SnowEngine {
                 if (!alive.has(k))
                     this._closing.delete(k);
             }
+            for (const [k, [w, ids]] of [...this._winSignals]) {
+                if (alive.has(k))
+                    continue;
+                for (const id of ids) {
+                    try {
+                        w.disconnect(id);
+                    } catch (e) {
+                        // вже від'єднано
+                    }
+                }
+                this._winSignals.delete(k);
+            }
         }
         if (!this._cfg.windowSnow)
             return;
@@ -429,7 +893,13 @@ class SnowEngine {
             const r = w.get_frame_rect();
             if (r.width < 40 || r.height < 20)
                 continue;
-            list.push({key: w.get_stable_sequence(), radius: w.is_maximized?.() ? 0 : this._cfg.winRadius,
+            const wkey = w.get_stable_sequence();
+            if (!this._winSignals.has(wkey)) {
+                // рух чи зміна розміру вікна — одразу на плавні кадри (без опитування)
+                const kick = () => this._kick();
+                this._winSignals.set(wkey, [w, [w.connect('position-changed', kick), w.connect('size-changed', kick)]]);
+            }
+            list.push({key: wkey, radius: w.is_maximized?.() ? 0 : this._cfg.winRadius,
                 rect: {x: r.x, y: r.y, width: r.width, height: r.height}});
         }
         // док завжди над вікнами — додаємо його в кінець списку
@@ -451,6 +921,8 @@ class SnowEngine {
             // різко посунули вікно — сніг осипається
             const dx = R.x - cap.lastX, dy = R.y - cap.lastY;
             const dr = R.x + R.width - (cap.lastX + cap.lastW);
+            if (dx || dy || cap.lastW !== R.width)
+                this._kick();
             // обидва краї зсунулись в один бік — це рух (можливо, з розгортанням вікна);
             // інакше — зміна розміру «по краях» (зокрема док, що росте від центру)
             const moved = Math.abs(dx) >= 3 && Math.abs(dr) >= 3 && Math.sign(dx) === Math.sign(dr);
@@ -533,7 +1005,7 @@ class SnowEngine {
 
     // вікно закрили або згорнули
     _onWindowGone(actor, closing) {
-        if (!this._area)
+        if (!this._layer)
             return;
         const w = actor?.get_meta_window?.();
         if (!w)
@@ -808,10 +1280,15 @@ class SnowEngine {
                 if (!layerMapped && !inOverview)
                     continue;
                 for (const wrap of layer.get_children()) {
-                    const isWidget = wrap.get_children().some(ch => {
-                        const sc = typeof ch.get_style_class_name === 'function' ? ch.get_style_class_name() : null;
-                        return sc && sc.split(/\s+/).includes('widget');
-                    });
+                    let isWidget = this._widgetCache.get(wrap);
+                    if (!isWidget) {
+                        isWidget = wrap.get_children().some(ch => {
+                            const sc = typeof ch.get_style_class_name === 'function' ? ch.get_style_class_name() : null;
+                            return sc && sc.split(/\s+/).includes('widget');
+                        });
+                        if (isWidget)
+                            this._widgetCache.set(wrap, true);   // «ні» перевіряємо знову: дочірні можуть з'явитися пізніше
+                    }
                     if (!isWidget)
                         continue;
                     let key = this._actorKeys.get(wrap);
@@ -823,7 +1300,7 @@ class SnowEngine {
                         const hook = [wrap, 0];
                         hook[1] = wrap.connect('destroy', () => {
                             this._widgetHooks = this._widgetHooks.filter(h => h !== hook);
-                            if (!this._area)
+                            if (!this._layer)
                                 return;
                             this._dropCap(newKey);
                             this._caps.delete(newKey);
@@ -837,7 +1314,7 @@ class SnowEngine {
                         const [w, h] = wrap.get_transformed_size();
                         if (!(w > 20 && h > 20) || y < 6)
                             continue;
-                        const item = {key, radius: themeRadius(wrap),
+                        const item = {key, radius: this._radiusOf(wrap),
                             rect: {x: Math.round(x), y: Math.round(y), width: Math.round(w), height: Math.round(h)}};
                         this._widgetRects.set(key, item);
                         out.push(item);
@@ -858,7 +1335,7 @@ class SnowEngine {
         if (!this._dockActors || this._time - this._dockScanT > 3) {
             this._dockScanT = this._time;
             const found = [];
-            const skip = new Set([global.window_group, Main.layoutManager.overviewGroup, this._area]);
+            const skip = new Set([global.window_group, Main.layoutManager.overviewGroup, this._layer]);
             const walk = (a, depth) => {
                 if (depth > 9)
                     return;
@@ -894,7 +1371,7 @@ class SnowEngine {
                     return;
                 out.push({
                     isDock: true,
-                    radius: Math.min(h / 2, themeRadius(a) || 16),
+                    radius: Math.min(h / 2, this._radiusOf(a) || 16),
                     key: `dock${i}`,
                     rect: {x: Math.round(x), y: Math.round(y), width: Math.round(w), height: Math.round(h)},
                 });
@@ -1572,100 +2049,6 @@ class SnowEngine {
         cr.$dispose();
     }
 
-    _draw(area) {
-        const cr = area.get_context();
-        cr.setOperator(Cairo.Operator.CLEAR);
-        cr.paint();
-        cr.setOperator(Cairo.Operator.OVER);
-
-        for (const w of this._windows) {
-            if (w.cap.animating) {
-                const b = this._bounceShape(w.cap);
-                this._drawCap(cr, w.rect.x, w.rect.y, b.h, w.covered, w.rect.width, b.off);
-            } else {
-                this._drawCap(cr, w.rect.x, w.rect.y, w.cap.h, w.covered, w.rect.width, w.cap.off);
-            }
-        }
-        // Активне вікно стоїть «перед» снігом: усе, що далі (кучугури, сніжинки, грудочки,
-        // машинка), не малюємо в його межах. Сніг на його верхньому краї вже намальовано вище.
-        const fr = this._focusRect;
-        if (fr) {
-            cr.save();
-            cr.newPath();
-            cr.rectangle(0, 0, this._area.width, this._area.height);
-            roundRect(cr, fr.x, fr.y, fr.width, fr.height, fr.radius);
-            cr.setFillRule(Cairo.FillRule.EVEN_ODD);
-            cr.clip();
-            cr.setFillRule(Cairo.FillRule.WINDING);
-        }
-
-        for (const g of this._grounds)
-            this._drawCap(cr, g.x, g.y + g.height + 1, g.h, null, g.width);
-
-        // тепле світіння навколо курсора, коли він топить сніг
-        if (this._heat > 0.02 && this._cfg.cursor) {
-            const m = this._mouse;
-            const glow = new Cairo.RadialGradient(m.x, m.y, 0, m.x, m.y, 30);
-            glow.addColorStopRGBA(0, 1, 0.62, 0.3, 0.22 * this._heat);
-            glow.addColorStopRGBA(1, 1, 0.62, 0.3, 0);
-            cr.setSource(glow);
-            cr.newPath();
-            cr.arc(m.x, m.y, 30, 0, TAU);
-            cr.fill();
-        }
-
-        // сніжинки
-        cr.newPath();
-        for (const f of this._flakes) {
-            cr.newSubPath();
-            cr.arc(f.x, f.y, f.r, 0, TAU);
-        }
-        cr.setSourceRGBA(1, 1, 1, 0.92 * (this._flakeAlpha ?? 1));
-        cr.fillPreserve();
-        cr.setSourceRGBA(0.45, 0.55, 0.68, 0.35 * (this._flakeAlpha ?? 1));
-        cr.setLineWidth(0.6);
-        cr.stroke();
-
-        // частинки
-        for (const p of this._puffs) {
-            cr.newPath();
-            if (p.steam) {
-                const a = p.life < 0.8 ? p.life / 0.8 : (1 - p.life) * 5;
-                cr.arc(p.x, p.y, p.r + (1 - p.life) * 6, 0, TAU);
-                cr.setSourceRGBA(0.93, 0.96, 1, 0.42 * a);
-                cr.fill();
-            } else if (p.smoke) {
-                cr.arc(p.x, p.y, p.r + (1 - p.life) * 7, 0, TAU);
-                cr.setSourceRGBA(0.5, 0.5, 0.52, p.life * 0.3);
-                cr.fill();
-            } else {
-                cr.arc(p.x, p.y, p.r, 0, TAU);
-                cr.setSourceRGBA(1, 1, 1, Math.min(1, p.life * 1.4));
-                cr.fill();
-            }
-        }
-
-        for (const g of this._grounds) {
-            if (g.plow.active)
-                this._drawPlow(cr, g.plow);
-        }
-        for (const p of this._capPlows ?? []) {
-            if (p.alpha < 0.02)
-                continue;
-            if (p.alpha < 0.99) {
-                cr.pushGroup();
-                this._drawPlow(cr, p);
-                cr.popGroupToSource();
-                cr.paintWithAlpha(p.alpha);
-            } else {
-                this._drawPlow(cr, p);
-            }
-        }
-        if (fr)
-            cr.restore();
-        cr.$dispose();
-    }
-
     // плавний контур гірки (Catmull-Rom → криві Безьє)
     _drawCap(cr, x0, base, h, covered, width, off = null) {
         const o = k => (off ? off[k] : 0);
@@ -1738,9 +2121,9 @@ class SnowEngine {
         cr.stroke();
     }
 
-    _drawPlow(cr, p) {
+    _drawPlow(cr, p, ox = p.px, oy = p.py) {
         cr.save();
-        cr.translate(p.px, p.py);
+        cr.translate(ox, oy);
         cr.rotate(p.angle);
         const sc = p.scale ?? 1;
         cr.scale(p.dir * sc, sc);
